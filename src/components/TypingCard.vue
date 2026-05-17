@@ -1,9 +1,38 @@
 <template>
   <section class="typing-card">
+    <div v-if="englishWarning" class="warning-popup">
+      ⚠️ הקלדה באנגלית - עבור לעברית
+    </div>
+
+    <div class="button-row">
+      <button 
+        class="nav-button prev-button" 
+        :disabled="!canGoPrev"
+        @click="$emit('prev-lesson')"
+        title="שיעור קודם"
+      >
+        ❮
+      </button>
+      <button 
+        class="reset-button" 
+        @click="$emit('restart-lesson')"
+        title="אפס שיעור"
+      >
+        ⟲
+      </button>
+      <button 
+        class="nav-button next-button" 
+        :disabled="!canGoNext"
+        @click="$emit('next-lesson')"
+        title="שיעור הבא"
+      >
+        ❯
+      </button>
+    </div>
+
     <div class="sample-preview" dir="rtl" v-html="displayText"></div>
 
     <div class="input-block">
-      <label class="input-label" for="typing-input">הקלד כאן את הטקסט...</label>
       <textarea
         id="typing-input"
         class="fluent-input"
@@ -41,12 +70,24 @@ const props = defineProps<{
   heldKey: string
   nextKey: string
   mistakeKey: string
+  englishWarning: boolean
+  canGoPrev: boolean
+  canGoNext: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur'])
+const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur', 'prev-lesson', 'next-lesson', 'restart-lesson', 'english'])
 
 function onInput(e: Event) {
   const value = (e.target as HTMLTextAreaElement).value
+  
+  // Check if the last character typed is English
+  if (value.length > props.modelValue.length) {
+    const lastChar = value[value.length - 1]
+    if (/[a-zA-Z]/.test(lastChar)) {
+      emit('english')
+    }
+  }
+  
   emit('update:modelValue', value)
   emit('input')
 }
@@ -101,10 +142,6 @@ function onBlur() {
   flex-direction: column;
   gap: 8px;
 }
-.input-label {
-  font-size: 13px;
-  color: #64748b;
-}
 .fluent-input {
   width: 100%;
   min-height: 116px;
@@ -117,9 +154,69 @@ function onBlur() {
   background: #ffffff;
   color: #0f172a;
   outline: none;
+  font-family: inherit;
+}
+.warning-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fee2e2;
+  color: #991b1b;
+  border: 2px solid #fca5a5;
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: popIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-width: 90%;
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 .fluent-input:focus {
   border-color: rgba(59,130,246,0.45);
   box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
+}
+.button-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.nav-button,
+.reset-button {
+  padding: 5px 10px;
+  border: 1px solid rgba(148,163,184,0.24);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-weight: 600;
+}
+.nav-button:hover:not(:disabled),
+.reset-button:hover {
+  background: #f1f5f9;
+  border-color: rgba(59,130,246,0.5);
+  color: #0f172a;
+}
+.nav-button:active:not(:disabled),
+.reset-button:active {
+  background: #e2e8f0;
+}
+.nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>
