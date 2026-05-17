@@ -110,8 +110,7 @@ const keyUnits: Record<string, number> = {
 
 function keyStyle(key: string) {
   const units = keyUnits[key] ?? 1
-  // flex-grow and flex-shrink both proportional — keys scale together on any width
-  return { flex: `${units} ${units} 0`, minWidth: '0' }
+  return { flex: `${units} ${units} 0` }
 }
 
 function displayKey(key: string) {
@@ -130,6 +129,7 @@ function displayKey(key: string) {
   border-radius: 14px;
   border: 1px solid var(--border-subtle);
   direction: ltr;
+  /* Fill the parent, never exceed it, never cause horizontal scroll */
   width: 100%;
   max-width: 500px;
   box-sizing: border-box;
@@ -138,47 +138,40 @@ function displayKey(key: string) {
   transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
 }
 
-@media (max-width: 480px) {
-  .keyboard {
-    padding: 4px;
-    max-width: 100%;
-  }
-}
-
 .row {
   display: flex;
   width: 100%;
-  gap: 2px;
+  box-sizing: border-box;
+  /* margin-right on keys instead of gap — avoids Android WebView flex-overflow bug */
   margin-bottom: 2px;
   flex-wrap: nowrap;
-}
-
-@media (max-width: 480px) {
-  .row {
-    gap: 1px;
-    margin-bottom: 1px;
-  }
 }
 
 .row:last-child { margin-bottom: 0; }
 
 .key {
+  /* flex sizing — units set via :style binding */
   flex: 1 1 0;
+  /* CRITICAL: min-width + width:0 prevents text content from blowing out row width */
   min-width: 0;
-  height: 18px;
+  width: 0;
+  /* Use margin-right instead of gap on the row */
+  margin-right: 2px;
+  height: clamp(20px, 4.8vw, 26px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 5px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  font-size: clamp(7px, 1vw, 10px);
+  font-size: clamp(8px, 1.9vw, 10px);
   font-weight: 500;
   color: var(--text-primary);
-  box-shadow: 0 2px 0 var(--border-color);
-  padding: 0 4px;
+  box-shadow: none;
+  padding: 0 2px;
   white-space: nowrap;
   overflow: hidden;
+  box-sizing: border-box;
   transition: background 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
   cursor: default;
   user-select: none;
@@ -186,18 +179,12 @@ function displayKey(key: string) {
   will-change: transform, box-shadow, background;
 }
 
-.key.active {
-  transform: translateY(-0.5px) scale(1.007);
-  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.12);
+.row .key:last-child {
+  margin-right: 0;
 }
 
-@media (max-width: 480px) {
-  .key {
-    height: 14px;
-    border-radius: 4px;
-    font-size: clamp(6px, 0.9vw, 8px);
-    box-shadow: 0 1px 0 var(--border-color);
-  }
+.key.active {
+  opacity: 0.85;
 }
 
 .single-key-content {
@@ -219,13 +206,8 @@ function displayKey(key: string) {
   line-height: 1;
 }
 
-.dual-key-content .shifted   { font-size: clamp(6px, 0.9vw, 9px); opacity: 0.55; }
-.dual-key-content .unshifted { font-size: clamp(6px, 1vw, 10px); }
-
-@media (max-width: 480px) {
-  .dual-key-content .shifted   { font-size: clamp(5px, 0.8vw, 7px); }
-  .dual-key-content .unshifted { font-size: clamp(5px, 0.9vw, 8px); }
-}
+.dual-key-content .shifted   { font-size: clamp(6px, 1.5vw, 8px); opacity: 0.55; }
+.dual-key-content .unshifted { font-size: clamp(8px, 1.9vw, 10px); }
 
 .key.special {
   background: #ecedf4;
@@ -244,27 +226,26 @@ function displayKey(key: string) {
   background: #3b82f6;
   border-color: #2563eb;
   color: #ffffff;
-  box-shadow: 0 2px 0 #1d4ed8;
+  box-shadow: none;
 }
 
 .key.next {
   background: #fef9c3;
   border-color: #fbbf24;
   color: #92400e;
-  box-shadow: 0 2px 0 #f59e0b;
+  box-shadow: none;
 }
-
 
 .key.mistake {
   background: #fee2e2;
   border-color: #fca5a5;
   color: #991b1b;
-  box-shadow: 0 2px 0 #ef4444;
+  box-shadow: none;
 }
 
 .win-icon {
-  width: clamp(8px, 1.2vw, 12px);
-  height: clamp(8px, 1.2vw, 12px);
+  width: clamp(8px, 1.9vw, 12px);
+  height: clamp(8px, 1.9vw, 12px);
   display: block;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <section class="typing-card">
+  <div class="typing-card">
     <div v-if="englishWarning" class="warning-popup">
       ⚠️ הקלדה באנגלית - עבור לעברית
     </div>
@@ -11,11 +11,11 @@
       :can-go-prev-stage="canGoPrevStage"
       :can-go-next-stage="canGoNextStage"
       :highlight-next-stage="highlightNextStage"
-      @prev-stage="onPrevStage"
-      @prev-lesson="onPrevLesson"
+      @prev-stage="goPrevStage"
+      @prev-lesson="goPrevLesson"
       @restart-lesson="restartLesson"
-      @next-lesson="onNextLesson"
-      @next-stage="onNextStage"
+      @next-lesson="goNextLesson"
+      @next-stage="goNextStage"
     />
 
     <div v-if="currentLesson?.text" class="lesson-instructions">
@@ -41,63 +41,86 @@
       :next-key="nextKey"
       :mistake-key="mistakeKey"
     />
-  </section>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from './KeyboardDisplay.vue'
 import HandGuide from './HandGuide.vue'
 import { useTyping } from './UseTyping'
 
-const { typed, currentLesson, displayText, nextKey, englishWarning, lastKey, heldKey, mistakeKey, restartLesson } = useTyping({ title: '', text: '' })
+const {
+  typed,
+  currentLesson,
+  displayText,
+  nextKey,
+  englishWarning,
+  lastKey,
+  heldKey,
+  mistakeKey,
+  // navigation flags
+  canGoPrev,
+  canGoNext,
+  canGoPrevStage,
+  canGoNextStage,
+  highlightNextStage,
+  // navigation actions
+  goPrevLesson,
+  goNextLesson,
+  goPrevStage,
+  goNextStage,
+  // other actions
+  restartLesson,
+  onInput,
+  onKeyDown,
+  onKeyUp,
+} = useTyping({ title: '', text: '' })
 
-const canGoPrev = computed(() => false)
-const canGoNext = computed(() => false)
-const canGoPrevStage = computed(() => false)
-const canGoNextStage = computed(() => false)
-const highlightNextStage = computed(() => false)
 const keyboard = ref<string[][]>([])
 
-function onInput() {
-  // Input logic here
-}
-
-function onKeyDown(e: KeyboardEvent) {
-  // Key down logic here
-}
-
-function onKeyUp(e: KeyboardEvent) {
-  // Key up logic here
-}
-
 function onBlur() {
-  // Blur logic here
-}
-
-function onPrevStage() {
-  // Previous stage logic
-}
-
-function onPrevLesson() {
-  // Previous lesson logic
-}
-
-function onNextLesson() {
-  // Next lesson logic
-}
-
-function onNextStage() {
-  // Next stage logic
+  // blur logic here
 }
 </script>
 
 <style>
+/* ── Reset: ensure the full ancestor chain has height ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  transition: background 300ms ease;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 300ms ease, color 300ms ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 :root {
   direction: rtl;
-  /* Light mode - Modern Fluent Design */
   --bg-primary: #ffffff;
   --bg-secondary: #f3f3f7;
   --bg-tertiary: #ececf1;
@@ -114,16 +137,13 @@ function onNextStage() {
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.12);
-
-  /* Fluent-like tokens added locally (safe to edit component only) */
   --card-radius: 12px;
   --card-padding: 20px;
   --card-bg: var(--bg-secondary);
-  --card-border: rgba(16,20,24,0.08);
+  --card-border: rgba(16, 20, 24, 0.08);
 }
 
 [data-theme='dark'] {
-  /* Dark mode - Modern Fluent Design */
   --bg-primary: #1f1f1f;
   --bg-secondary: #2d2d2d;
   --bg-tertiary: #3e3e3e;
@@ -137,27 +157,41 @@ function onNextStage() {
   --success-color: #13a538;
   --warning-color: #ffb900;
   --error-color: #f7630c;
-  --card-border: rgba(255,255,255,0.08);
+  --card-border: rgba(255, 255, 255, 0.08);
   --card-bg: var(--bg-secondary);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
-
-html {
-  background: var(--bg-primary);
-  transition: background 300ms ease;
-}
-
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  transition: background 300ms ease, color 300ms ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-}
 </style>
 
 <style scoped>
+.typing-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  border-radius: 0;
+  padding: 14px;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: none;
+  transition: background 300ms ease, color 300ms ease;
+}
+
+@media (max-width: 480px) {
+  .typing-card {
+    padding: 12px;
+    gap: 10px;
+  }
+}
+
 .lesson-instructions {
   width: 100%;
   border-radius: 14px;
@@ -167,7 +201,6 @@ body {
   box-shadow: var(--shadow-sm);
   color: var(--text-secondary);
   line-height: 1.55;
-  margin-bottom: 0;
 }
 
 .lesson-instructions-text {
@@ -180,34 +213,9 @@ body {
   .lesson-instructions {
     padding: 10px 12px;
     border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(16, 24, 40, 0.03);
   }
 }
 
-.typing-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  width: 100%;
-  min-height: 100%;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-height: 0;
-  flex: 1 1 auto;
-  border: 1px solid var(--card-border);
-  transition: background 300ms ease, box-shadow 300ms ease, transform 180ms ease, border-color 300ms ease;
-}
-
-@media (max-width: 480px) {
-  .typing-card {
-    padding: 12px;
-    gap: 10px;
-  }
-}
 .warning-popup {
   position: fixed;
   top: 50%;
@@ -223,8 +231,18 @@ body {
   text-align: center;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
   z-index: 1000;
-  animation: popIn 300ms cubic-bezier(0.34,1.56,0.64,1);
+  animation: popIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
   max-width: 90%;
 }
-@keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.86) } to { opacity: 1; transform: translate(-50%, -50%) scale(1) } }
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
 </style>
