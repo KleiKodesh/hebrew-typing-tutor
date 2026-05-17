@@ -10,12 +10,14 @@ const props = defineProps<{ displayText: string }>()
 
 <style scoped>
 .samples{margin-bottom:6px}
-.text{background:white;padding:10px;border-radius:12px;overflow:auto;font-size:clamp(15px,2.2vw,18px);line-height:1.4;white-space:pre-wrap;text-align:right;box-shadow:0 4px 12px rgba(16,24,40,0.06);border:1px solid rgba(16,24,40,0.04);min-height:0}
+.text{background:white;padding:10px;border-radius:12px;overflow:auto;font-size:clamp(15px,2.2vw,18px);line-height:1.7;white-space:pre-wrap;text-align:right;box-shadow:0 4px 12px rgba(16,24,40,0.06);border:1px solid rgba(16,24,40,0.04);min-height:0}
 .text span.current {
-  background: rgba(59,130,246,0.18);
+  background: rgba(59,130,246,0.25);
   color: #0f172a;
-  border-radius: 4px;
-  padding: 0 0.14em;
+  border-radius: 5px;
+  padding: 0.2em 0.3em;
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(59,130,246,0.3);
 }
 .text span.correct {
   color: #0f766e;

@@ -82,6 +82,19 @@ function onBlur() {
   border-radius: 16px;
   background: #f9fbff;
   border: 1px solid rgba(148,163,184,0.18);
+  white-space: pre-wrap;
+}
+:deep(.sample-preview span.current) {
+  background: #fbbf24;
+  color: #1f2937;
+  font-weight: 500;
+}
+:deep(.sample-preview span.correct) {
+  color: #0f766e;
+}
+:deep(.sample-preview span.wrong) {
+  color: #b91c1c;
+  text-decoration: underline wavy rgba(185,28,28,0.7);
 }
 .input-block {
   display: flex;
