@@ -15,7 +15,7 @@
           לפי מחקר Baddeley &amp; Longman (1978), שיעור אחד ביום של עד 20 דקות הוא האפקטיבי ביותר.
           עצור כאן. חזור מחר.
         </div>
-        <button class="session-overlay-btn" @click="restartLesson">אישור — אחזור מחר</button>
+        <button class="session-overlay-btn" @click="dismissExpired">אישור — אחזור מחר</button>
       </div>
     </div>
 
@@ -209,6 +209,7 @@ const {
   goNextStage,
   // other actions
   restartLesson,
+  dismissExpired,
   onInput,
   onKeyDown,
   onKeyUp,
@@ -340,11 +341,11 @@ body {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: clamp(8px, 1.5vw, 14px) clamp(10px, 2vw, 16px);
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: clamp(4px, 1vw, 8px);
   overflow: hidden;
   min-height: 0;
 }
@@ -353,13 +354,13 @@ body {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: clamp(4px, 0.8vw, 7px);
   overflow-y: auto;
   min-height: 0;
 }
 
 .lesson-title {
-  font-size: 14px;
+  font-size: clamp(13px, 2vw, 17px);
   font-weight: 700;
   color: var(--text-primary);
   flex-shrink: 0;
@@ -367,35 +368,21 @@ body {
 }
 
 .lesson-text {
-  font-size: 13px;
+  font-size: clamp(12px, 1.8vw, 15px);
   color: var(--text-secondary);
   white-space: pre-wrap;
   line-height: 1.55;
 }
 
 .guidance-hint {
-  font-size: 11px;
+  font-size: clamp(10px, 1.5vw, 13px);
   color: var(--text-tertiary);
   background: rgba(0,120,212,0.06);
-  padding: 7px 10px;
+  padding: clamp(5px, 1vw, 9px) clamp(8px, 1.5vw, 12px);
   border-radius: 6px;
   border-right: 2px solid var(--accent-primary);
   line-height: 1.4;
   flex-shrink: 0;
-}
-
-@media (max-width: 480px) {
-  .lesson-info { padding: 8px 10px; gap: 4px; }
-  .lesson-title { font-size: 13px; }
-  .lesson-text { font-size: 12px; }
-  .guidance-hint { font-size: 10px; padding: 5px 8px; }
-}
-
-@media (max-height: 600px) {
-  .lesson-info { padding: 6px 8px; gap: 3px; }
-  .lesson-title { font-size: 12px; }
-  .lesson-text { font-size: 11px; line-height: 1.4; }
-  .guidance-hint { font-size: 10px; padding: 4px 6px; }
 }
 
 /* ── Zone progress bar ── */
@@ -408,14 +395,14 @@ body {
 
 .zone-pip {
   flex: 1;
-  height: 24px;
+  height: clamp(20px, 3.5vw, 28px);
   border-radius: 5px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: clamp(9px, 1.4vw, 12px);
   font-weight: 600;
   color: var(--text-tertiary);
   transition: background 200ms, color 200ms, border-color 200ms;
@@ -435,25 +422,20 @@ body {
 
 .zone-pip-label { pointer-events: none; }
 
-@media (max-height: 600px) {
-  .zone-bar { gap: 3px; }
-  .zone-pip { height: 20px; font-size: 9px; }
-}
-
 /* ── Recall panel ── */
 .recall-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 12px;
+  padding: clamp(10px, 2vw, 16px);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: clamp(8px, 1.5vw, 12px);
   flex-shrink: 0;
 }
 
 .recall-text {
-  font-size: 14px;
+  font-size: clamp(13px, 2vw, 17px);
   color: var(--text-primary);
   line-height: 1.6;
   white-space: pre-wrap;
@@ -465,19 +447,14 @@ body {
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: clamp(7px, 1.2vw, 10px) clamp(12px, 2vw, 18px);
+  font-size: clamp(12px, 1.8vw, 15px);
   font-weight: 600;
   cursor: pointer;
   transition: opacity 150ms;
 }
 
 .recall-btn:hover { opacity: 0.88; }
-
-@media (max-width: 480px) {
-  .recall-text { font-size: 13px; }
-  .recall-btn { font-size: 12px; padding: 7px 12px; }
-}
 
 /* ── Free mode panel ── */
 .free-panel {
@@ -491,8 +468,8 @@ body {
   flex: 1 1 auto;
   min-height: 60px;
   resize: none;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: clamp(8px, 1.5vw, 12px);
+  font-size: clamp(13px, 2vw, 16px);
   line-height: 1.5;
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
@@ -536,16 +513,16 @@ body {
   gap: 12px;
 }
 
-.session-overlay-icon { font-size: 36px; }
+.session-overlay-icon { font-size: clamp(28px, 5vw, 40px); }
 
 .session-overlay-title {
-  font-size: 18px;
+  font-size: clamp(16px, 2.5vw, 20px);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .session-overlay-body {
-  font-size: 13px;
+  font-size: clamp(12px, 1.8vw, 14px);
   color: var(--text-secondary);
   line-height: 1.55;
 }
@@ -555,8 +532,8 @@ body {
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
+  padding: clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px);
+  font-size: clamp(13px, 2vw, 15px);
   font-weight: 600;
   cursor: pointer;
   margin-top: 4px;
@@ -580,18 +557,18 @@ body {
 .summary-box {
   background: var(--bg-primary);
   border-radius: 16px;
-  padding: 24px 20px;
-  max-width: 320px;
+  padding: clamp(18px, 3vw, 28px) clamp(16px, 2.5vw, 24px);
+  max-width: 340px;
   width: 100%;
   text-align: center;
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: clamp(10px, 2vw, 16px);
 }
 
 .summary-title {
-  font-size: 18px;
+  font-size: clamp(16px, 2.5vw, 20px);
   font-weight: 700;
   color: var(--success-color);
 }
@@ -599,7 +576,7 @@ body {
 .summary-stats {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: clamp(14px, 3vw, 24px);
 }
 
 .summary-stat {
@@ -610,23 +587,23 @@ body {
 }
 
 .summary-stat-value {
-  font-size: 22px;
+  font-size: clamp(20px, 3.5vw, 26px);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .summary-stat-label {
-  font-size: 11px;
+  font-size: clamp(10px, 1.5vw, 12px);
   color: var(--text-tertiary);
 }
 
 .summary-stat.ayin-warn .summary-stat-value { color: var(--warning-color); }
 
 .ayin-feedback {
-  font-size: 12px;
+  font-size: clamp(11px, 1.6vw, 13px);
   color: var(--warning-color);
   background: rgba(217,119,6,0.08);
-  padding: 8px 10px;
+  padding: clamp(6px, 1vw, 10px);
   border-radius: 6px;
   line-height: 1.4;
 }
@@ -639,9 +616,9 @@ body {
 
 .summary-btn {
   flex: 1;
-  padding: 9px 12px;
+  padding: clamp(8px, 1.5vw, 11px) clamp(10px, 2vw, 14px);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: clamp(12px, 1.8vw, 14px);
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -671,8 +648,8 @@ body {
   color: #991b1b;
   border: 1px solid rgba(252,165,165,0.75);
   border-radius: 16px;
-  padding: 16px 22px;
-  font-size: 15px;
+  padding: clamp(12px, 2vw, 18px) clamp(16px, 3vw, 24px);
+  font-size: clamp(13px, 2vw, 16px);
   font-weight: 700;
   text-align: center;
   box-shadow: var(--shadow-lg);

@@ -42,8 +42,8 @@ const accuracyClass = computed(() => {
 .stats-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 8px;
+  gap: clamp(8px, 1.5vw, 14px);
+  padding: clamp(3px, 0.6vw, 6px) clamp(6px, 1.2vw, 10px);
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
@@ -59,7 +59,7 @@ const accuracyClass = computed(() => {
 }
 
 .stat-value {
-  font-size: 13px;
+  font-size: clamp(11px, 1.8vw, 14px);
   font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -71,7 +71,7 @@ const accuracyClass = computed(() => {
 .stat-value.bad  { color: var(--error-color); }
 
 .stat-label {
-  font-size: 10px;
+  font-size: clamp(9px, 1.3vw, 11px);
   color: var(--text-tertiary);
 }
 
@@ -84,7 +84,7 @@ const accuracyClass = computed(() => {
 
 .progress-track {
   flex: 1 1 auto;
-  height: 4px;
+  height: clamp(3px, 0.5vw, 5px);
   background: var(--bg-tertiary);
   border-radius: 2px;
   overflow: hidden;
@@ -95,16 +95,5 @@ const accuracyClass = computed(() => {
   background: var(--accent-primary);
   border-radius: 2px;
   transition: width 200ms ease;
-}
-
-@media (max-width: 480px) {
-  .stats-bar { gap: 8px; padding: 3px 6px; }
-  .stat-value { font-size: 12px; }
-  .stat-label { font-size: 9px; }
-}
-
-@media (max-height: 600px) {
-  .stats-bar { padding: 2px 6px; gap: 6px; }
-  .stat-value { font-size: 11px; }
 }
 </style>

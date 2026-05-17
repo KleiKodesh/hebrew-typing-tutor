@@ -7,7 +7,7 @@
     {
       "lesson_id": "s5_l1",
       "title": "מעבר לזיכרון — קרא, כסה, הקלד",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. קרא את המשפט פעם אחת בקול, כסה, הקלד.",
@@ -22,7 +22,7 @@
     {
       "lesson_id": "s5_l2",
       "title": "קצב עקבי — מהיר ואחיד, לא מהיר ועצור",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. קצב אחיד — גם אם איטי — עדיף על מואץ-ועצור.",
@@ -37,7 +37,7 @@
     {
       "lesson_id": "s5_l3",
       "title": "נקודה — סיום משפט",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. נקודה: זרת ימין יורד. אחרי נקודה תמיד רווח.",
@@ -52,7 +52,7 @@
     {
       "lesson_id": "s5_l4",
       "title": "פסיק — הפסקה בתוך משפט",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. פסיק: קמיצה ימין יורד. אחרי פסיק תמיד רווח.",
@@ -67,7 +67,7 @@
     {
       "lesson_id": "s5_l5",
       "title": "סימן שאלה — בעברית ? מחליף נקודה",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. ? = Shift + / — זרת ימין + Shift.",
@@ -82,7 +82,7 @@
     {
       "lesson_id": "s5_l6",
       "title": "משפטים שלמים עם פיסוק מלא",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. קרא את כל הקטע פעם — ואז הקלד.",
@@ -97,7 +97,7 @@
     {
       "lesson_id": "s5_l7",
       "title": "טקסט חופשי — קטע ראשון",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. קרא פעם אחת, הקלד מהזיכרון — אל תחזור לקרוא.",
@@ -112,7 +112,7 @@
     {
       "lesson_id": "s5_l8",
       "title": "אתגר סיכום — שלב 5",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "input",
       "exercise_mode": "recall",
       "session_guidance": "עד 20 דקות. אם הגעת לכאן בדיוק — יש לך הקלדה עיוורת מבוססת. שלב 6 הוא האוטומציה.",

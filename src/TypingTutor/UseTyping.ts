@@ -99,17 +99,34 @@ export function useTyping(initialLesson: Lesson) {
   const recallReady = ref(false)   // user has read the text and clicked ready
   const recallHidden = ref(false)  // text is now hidden, typing begins
 
-  // ── Session timer (Baddeley & Longman 1978: 20 min max) ────────────────────
+  // ── Session timer (Baddeley & Longman 1978: 20 min max per day) ─────────────
   const SESSION_MAX_MS = 20 * 60 * 1000
-  const sessionElapsedMs = ref(0)
-  const sessionWarning = ref(false)   // at 18 min
-  const sessionExpired = ref(false)   // at 20 min
+
+  function todayKey(): string {
+    const d = new Date()
+    return `sessionTime_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  function loadTodayMs(): number {
+    return parseInt(localStorage.getItem(todayKey()) ?? '0', 10) || 0
+  }
+
+  function saveTodayMs(ms: number) {
+    localStorage.setItem(todayKey(), String(ms))
+  }
+
+  const sessionElapsedMs = ref(loadTodayMs())
+  const sessionWarning = ref(sessionElapsedMs.value >= 18 * 60 * 1000)
+  const sessionExpired = ref(sessionElapsedMs.value >= SESSION_MAX_MS)
   let sessionTimerInterval: ReturnType<typeof setInterval> | null = null
 
   function startSessionTimer() {
+    // Don't start if already expired for today
+    if (sessionExpired.value) return
     if (sessionTimerInterval) return
     sessionTimerInterval = setInterval(() => {
       sessionElapsedMs.value += 1000
+      saveTodayMs(sessionElapsedMs.value)
       if (sessionElapsedMs.value >= SESSION_MAX_MS) {
         sessionExpired.value = true
         sessionWarning.value = false
@@ -349,18 +366,12 @@ export function useTyping(initialLesson: Lesson) {
   const goPrevLesson = () => {
     if (!canGoPrev.value || !currentStage.value) return
     stopSessionTimer()
-    sessionElapsedMs.value = 0
-    sessionWarning.value = false
-    sessionExpired.value = false
     applyLesson(currentStage.value.lessons[currentLessonIndex.value - 1])
   }
 
   const goNextLesson = () => {
     if (!canGoNext.value || !currentStage.value) return
     stopSessionTimer()
-    sessionElapsedMs.value = 0
-    sessionWarning.value = false
-    sessionExpired.value = false
     applyLesson(currentStage.value.lessons[currentLessonIndex.value + 1])
   }
 
@@ -369,9 +380,6 @@ export function useTyping(initialLesson: Lesson) {
     const stage = allStages.value[currentStageIndex.value - 1]
     currentStage.value = stage
     stopSessionTimer()
-    sessionElapsedMs.value = 0
-    sessionWarning.value = false
-    sessionExpired.value = false
     applyLesson(stage.lessons[0])
   }
 
@@ -380,9 +388,6 @@ export function useTyping(initialLesson: Lesson) {
     const stage = allStages.value[currentStageIndex.value + 1]
     currentStage.value = stage
     stopSessionTimer()
-    sessionElapsedMs.value = 0
-    sessionWarning.value = false
-    sessionExpired.value = false
     applyLesson(stage.lessons[0])
   }
 
@@ -415,19 +420,18 @@ export function useTyping(initialLesson: Lesson) {
 
   const restartLesson = () => {
     stopSessionTimer()
-    sessionElapsedMs.value = 0
-    sessionWarning.value = false
-    sessionExpired.value = false
     currentZoneIndex.value = 0
     resetTyping()
   }
 
   const selectLesson = (lesson: Lesson) => {
     stopSessionTimer()
-    sessionElapsedMs.value = 0
-    sessionWarning.value = false
-    sessionExpired.value = false
     applyLesson(lesson)
+  }
+
+  // Dismiss the expired overlay — the day's time is spent, just hide the modal
+  const dismissExpired = () => {
+    sessionExpired.value = false
   }
 
   // recall mode: user signals they've read the text
@@ -467,6 +471,9 @@ export function useTyping(initialLesson: Lesson) {
   }
 
   const onInput = (e?: Event) => {
+    // Block input if today's session is expired
+    if (sessionExpired.value) return
+
     // English keyboard detection
     if (e && exerciseMode.value !== 'free') {
       const textarea = e.target as HTMLTextAreaElement
@@ -649,6 +656,7 @@ export function useTyping(initialLesson: Lesson) {
     triggerEnglishWarning,
     selectLesson,
     restartLesson,
+    dismissExpired,
     clearAllProgress,
     generateWeakLesson,
   }

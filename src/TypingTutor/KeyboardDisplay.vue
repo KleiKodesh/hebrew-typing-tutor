@@ -126,7 +126,7 @@ function displayKey(key: string) {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: 4px;
-  border-radius: 10px;
+  border-radius: 1px;
   border: 1px solid var(--border-subtle);
   direction: ltr;
   width: 100%;
@@ -136,13 +136,15 @@ function displayKey(key: string) {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
   transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .row {
   display: flex;
   width: 100%;
   box-sizing: border-box;
-  margin-bottom: 1px;
   flex-wrap: nowrap;
 }
 
@@ -152,14 +154,14 @@ function displayKey(key: string) {
   flex: 1 1 0;
   min-width: 0;
   width: 0;
-  margin-right: 1px;
+  margin-right: 2px;
   height: clamp(18px, 4.2vw, 22px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  border-radius: 1px;
+  background: rgba(236, 237, 244, 0.85);
+  border: 0.5px solid rgba(192, 194, 204, 0.7);
   font-size: clamp(7px, 1.6vw, 9px);
   font-weight: 500;
   color: var(--text-primary);
@@ -175,25 +177,27 @@ function displayKey(key: string) {
   will-change: transform, box-shadow, background;
 }
 
-.row .key:last-child {
-  margin-right: 0;
+[data-theme='dark'] .key {
+  background: rgba(236, 237, 244, 0.12);
+  border-color: rgba(192, 194, 204, 0.2);
+}
+
+.row .key {
+  margin-right: 2px;
 }
 
 @media (max-height: 600px) {
   .keyboard {
     padding: 3px;
     margin: 1px auto 0 auto;
-  }
-  
-  .row {
-    margin-bottom: 1px;
+    gap: 2px;
   }
   
   .key {
     height: clamp(16px, 3.8vw, 20px);
     font-size: clamp(6px, 1.4vw, 8px);
-    border-radius: 3px;
-    margin-right: 1px;
+    border-radius: 1px;
+    margin-right: 2px;
   }
 }
 
@@ -224,15 +228,15 @@ function displayKey(key: string) {
 .dual-key-content .unshifted { font-size: clamp(8px, 1.9vw, 10px); }
 
 .key.special {
-  background: #ecedf4;
-  border-color: #c0c2cc;
+  background: rgba(236, 237, 244, 0.95);
+  border-color: rgba(192, 194, 204, 0.85);
   color: #4a4c5a;
   font-weight: 500;
 }
 
 [data-theme='dark'] .key.special {
-  background: #404060;
-  border-color: #505080;
+  background: rgba(236, 237, 244, 0.18);
+  border-color: rgba(192, 194, 204, 0.28);
   color: #b0b0d0;
 }
 

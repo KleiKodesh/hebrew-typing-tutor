@@ -187,7 +187,7 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
 .hand-guide {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: clamp(6px, 1.5vw, 14px);
   padding: 2px 0 0;
   direction: ltr;
   background: transparent;
@@ -197,43 +197,13 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
   flex-shrink: 0;
 }
 
-@media (max-width: 480px) {
-  .hand-guide {
-    gap: 6px;
-    padding: 2px 0 0;
-  }
-}
-
-@media (max-height: 600px) {
-  .hand-guide {
-    gap: 4px;
-    padding: 1px 0 0;
-  }
-}
-
 .hand-icon {
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
+  width: clamp(32px, 6vw, 52px);
+  min-width: clamp(32px, 6vw, 52px);
+  height: clamp(32px, 6vw, 52px);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-@media (max-width: 480px) {
-  .hand-icon {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-  }
-}
-
-@media (max-height: 600px) {
-  .hand-icon {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-  }
 }
 .hand-icon svg {
   width: 100%;

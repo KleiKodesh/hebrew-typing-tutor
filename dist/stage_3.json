@@ -7,7 +7,7 @@
     {
       "lesson_id": "s3_l1",
       "title": "הכרת ה — מורה שמאל יורד (#2 בתדירות)",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -22,7 +22,7 @@
     {
       "lesson_id": "s3_l2",
       "title": "הכרת נ — אמה שמאל יורד (#6 בתדירות)",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. שמור: נ ו-ג על אותה אמה — אצבע ישרה כשיורדת.",
@@ -37,7 +37,7 @@
     {
       "lesson_id": "s3_l3",
       "title": "הכרת ב — קמיצה שמאל יורד",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. ב מופיעה המון כאות חיבור — תרגל אותה בהקשר.",
@@ -52,7 +52,7 @@
     {
       "lesson_id": "s3_l4",
       "title": "הכרת מ — קמיצה ימין יורד (#9 בתדירות)",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -67,7 +67,7 @@
     {
       "lesson_id": "s3_l5",
       "title": "הכרת ז ו-ס — שתי אותיות נדירות, שיעור אחד",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. ז ו-ס נדירות — לאט יותר בזוני A.",
@@ -82,7 +82,7 @@
     {
       "lesson_id": "s3_l6",
       "title": "מילים מהשורה התחתונה — כל שלוש השורות",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. קרא כל מילה לפני שמקליד.",
@@ -97,7 +97,7 @@
     {
       "lesson_id": "s3_l7",
       "title": "ערבוב — שלוש שורות, מגוון מרבי",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. תן לידיים לנוע מעצמן — אל תחשוב על כל אצבע.",
@@ -112,7 +112,7 @@
     {
       "lesson_id": "s3_l8",
       "title": "אתגר סיכום — שלב 3",
-      "phase_label": "associative",
+      "phase_label": "אסוציאטיבי",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שלוש שגיאות או פחות — עובר לשלב 4.",

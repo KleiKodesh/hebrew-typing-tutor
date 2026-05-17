@@ -3,7 +3,8 @@
     <div class="section exercise-section">
       <div
         v-if="!isHidden"
-        class="sample-preview"
+        class="tunnel"
+        ref="tunnelEl"
         dir="rtl"
         v-html="displayText"
       ></div>
@@ -22,12 +23,18 @@
       placeholder="הקלד כאן..."
       dir="rtl"
       autofocus
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
     ></textarea>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { ref, watch, nextTick } from 'vue'
+
+const props = defineProps<{
   modelValue?: string
   displayText?: string
   isHidden?: boolean
@@ -43,6 +50,36 @@ function onInput(e: Event) {
 function onKeyDown(e: KeyboardEvent) { emit('keydown', e) }
 function onKeyUp(e: KeyboardEvent)   { emit('keyup', e) }
 function onBlur()                    { emit('blur') }
+
+// ── Tunnel scrolling ──────────────────────────────────────────────────────────
+const tunnelEl = ref<HTMLElement | null>(null)
+
+const ANCHOR_RATIO = 0.35
+
+watch(
+  () => props.displayText,
+  async () => {
+    await nextTick()
+    const el = tunnelEl.value
+    if (!el) return
+    const current = el.querySelector<HTMLElement>('span.current')
+    if (!current) {
+      el.scrollLeft = 0
+      return
+    }
+
+    // getBoundingClientRect is safe here: we're only SETTING scrollLeft,
+    // never reading it back into the calculation — no feedback loop.
+    const tunnelRect = el.getBoundingClientRect()
+    const spanRect   = current.getBoundingClientRect()
+
+    const anchorX    = tunnelRect.right - tunnelRect.width * ANCHOR_RATIO
+    const spanCentreX = spanRect.left + spanRect.width / 2
+
+    el.scrollLeft += spanCentreX - anchorX
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
@@ -62,12 +99,12 @@ function onBlur()                    { emit('blur') }
 }
 
 .sample-hidden {
-  font-size: 11px;
+  font-size: clamp(10px, 1.5vw, 12px);
   color: var(--text-tertiary);
   padding: 6px 8px;
   font-style: italic;
   text-align: center;
-  height: 24px;
+  height: clamp(22px, 3.5vw, 28px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,48 +117,30 @@ function onBlur()                    { emit('blur') }
   padding: 0;
 }
 
-.sample-preview {
+/* ── Tunnel strip ── */
+.tunnel {
   color: var(--text-secondary);
-  font-size: 12px;
-  padding: 6px 8px;
-  margin: 0;
-  border-radius: 0;
-  border: none;
-  background: transparent;
-  width: 100%;
+  font-size: clamp(11px, 1.8vw, 14px);
+  padding: clamp(4px, 0.8vw, 7px) clamp(6px, 1.2vw, 10px);
+  height: clamp(22px, 3.5vw, 28px);
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
   white-space: nowrap;
-  line-height: 1.4;
-  transition: color 200ms ease;
-  flex-shrink: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 24px;
   display: flex;
   align-items: center;
+  scrollbar-width: none;
+  direction: rtl;
 }
 
-@media (max-width: 480px) {
-  .sample-preview {
-    font-size: 11px;
-    padding: 5px 8px;
-    height: 22px;
-  }
-}
-
-@media (max-height: 600px) {
-  .sample-preview {
-    font-size: 11px;
-    padding: 4px 6px;
-    height: 20px;
-  }
-}
+.tunnel::-webkit-scrollbar { display: none; }
 
 .fluent-input {
   width: 100%;
-  height: 32px;
+  height: clamp(28px, 5vw, 36px);
   resize: none;
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: clamp(5px, 1vw, 8px) clamp(6px, 1.2vw, 10px);
+  font-size: clamp(11px, 1.8vw, 14px);
   line-height: 1.4;
   border-radius: 0 0 8px 8px;
   border: none;
@@ -140,28 +159,9 @@ function onBlur()                    { emit('blur') }
   background: var(--bg-primary);
 }
 
-.fluent-input::placeholder {
-  color: var(--text-tertiary);
-}
+.fluent-input::placeholder { color: var(--text-tertiary); }
 
-@media (max-width: 480px) {
-  .fluent-input { 
-    height: 30px; 
-    padding: 5px 8px; 
-    font-size: 11px; 
-  }
-}
-
-@media (max-height: 600px) {
-  .fluent-input {
-    height: 28px;
-    padding: 4px 6px;
-    font-size: 11px;
-    border-radius: 0 0 6px 6px;
-  }
-}
-
-:deep(.sample-preview span.current) {
+:deep(span.current) {
   background: rgba(0, 120, 212, 0.18);
   color: var(--text-primary);
   font-weight: 600;
@@ -170,7 +170,7 @@ function onBlur()                    { emit('blur') }
   white-space: nowrap;
 }
 
-:deep(.sample-preview span.correct) {
+:deep(span.correct) {
   color: var(--success-color);
   background: rgba(16, 124, 16, 0.08);
   border-radius: 2px;
@@ -178,7 +178,7 @@ function onBlur()                    { emit('blur') }
   white-space: nowrap;
 }
 
-:deep(.sample-preview span.wrong) {
+:deep(span.wrong) {
   color: var(--error-color);
   background: rgba(232, 27, 35, 0.1);
   border-radius: 2px;

@@ -128,20 +128,20 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 }
 
 .phase-display {
-  font-size: 12px;
+  font-size: clamp(10px, 1.6vw, 13px);
   font-weight: 600;
   color: var(--accent-primary);
   background: rgba(0, 120, 212, 0.12);
-  padding: 4px 8px;
+  padding: clamp(3px, 0.6vw, 5px) clamp(6px, 1vw, 10px);
   border-radius: 6px;
   flex-shrink: 0;
 }
 
 .session-timer {
-  font-size: 12px;
+  font-size: clamp(10px, 1.6vw, 13px);
   font-weight: 600;
   color: var(--text-tertiary);
-  padding: 4px 8px;
+  padding: clamp(3px, 0.6vw, 5px) clamp(6px, 1vw, 10px);
   border-radius: 6px;
   background: var(--bg-tertiary);
   flex-shrink: 0;
@@ -152,16 +152,6 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 .session-timer--warn {
   color: var(--warning-color);
   background: rgba(217, 119, 6, 0.1);
-}
-
-@media (max-width: 480px) {
-  .phase-display { font-size: 11px; padding: 3px 6px; }
-  .session-timer { font-size: 11px; padding: 3px 6px; }
-}
-
-@media (max-height: 600px) {
-  .phase-display { font-size: 10px; padding: 2px 6px; }
-  .session-timer { font-size: 10px; padding: 2px 6px; }
 }
 
 .lesson-heading { 
@@ -210,14 +200,13 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 }
 
 .nav-button, .reset-button {
-  width: 32px;
-  height: 32px;
+  width: clamp(28px, 4.5vw, 36px);
+  height: clamp(28px, 4.5vw, 36px);
   padding: 0;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: 11px;
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
   font-weight: 700;
@@ -229,44 +218,9 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   flex-shrink: 0;
 }
 
-.nav-button::before, .reset-button::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  opacity: 0.08;
-  transform: translate(-50%, -50%);
-  transition: width 600ms ease, height 600ms ease;
-}
-
-.nav-button:hover::before, .reset-button:hover::before {
-  width: 100%;
-  height: 100%;
-}
-
-@media (max-width: 480px) {
-  .nav-button, .reset-button { 
-    width: 30px; 
-    height: 30px;
-    border-radius: 8px;
-  }
-}
-
-@media (max-height: 600px) {
-  .nav-button, .reset-button {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-  }
-}
-
 .icon { 
-  width: 14px; 
-  height: 14px; 
+  width: clamp(12px, 2vw, 16px);
+  height: clamp(12px, 2vw, 16px);
   display: inline-block; 
   vertical-align: middle;
   position: relative;
@@ -274,17 +228,11 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 }
 
 @media (max-width: 480px) {
-  .icon { 
-    width: 13px; 
-    height: 13px;
-  }
+  .nav-button, .reset-button { border-radius: 7px; }
 }
 
 @media (max-height: 600px) {
-  .icon {
-    width: 12px;
-    height: 12px;
-  }
+  .nav-button, .reset-button { border-radius: 6px; }
 }
 
 .nav-button:hover:not(:disabled), .reset-button:hover {
