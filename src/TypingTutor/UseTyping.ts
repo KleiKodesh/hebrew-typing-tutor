@@ -1,24 +1,66 @@
+export interface ExerciseZones {
+  zone_a: string | null
+  zone_b: string | null
+  zone_c: string | null
+}
+
 export interface Lesson {
   lesson_id?: string
   title: string
   text: string
   exercise?: string
+  phase_label?: string
+  salthouse_target?: string
+  exercise_mode?: string
+  session_guidance?: string
+  exercise_zones?: ExerciseZones
+  ayin_check?: boolean
 }
 
 export interface Stage {
   stage_id: string
   stage_title: string
   description: string
+  phase_context?: string
+  high_frequency_anchor_words?: string[]
   lessons: Lesson[]
 }
 
-import { ref, computed, watch, onMounted } from 'vue'
+export type ExerciseMode = 'copy' | 'recall' | 'free'
+export type ZoneKey = 'zone_a' | 'zone_b' | 'zone_c'
 
-function getTarget(lesson: Lesson) {
-  return lesson.exercise ?? lesson.text
+// ── Zone helpers ─────────────────────────────────────────────────────────────
+
+export function getZones(lesson: Lesson): ZoneKey[] {
+  if (!lesson.exercise_zones) return ['zone_c']
+  const keys: ZoneKey[] = ['zone_a', 'zone_b', 'zone_c']
+  return keys.filter((k) => lesson.exercise_zones![k] !== null)
 }
 
+export function getZoneText(lesson: Lesson, zone: ZoneKey): string {
+  return lesson.exercise_zones?.[zone] ?? ''
+}
+
+export function getZoneLabel(zone: ZoneKey): string {
+  return { zone_a: 'א', zone_b: 'ב', zone_c: 'ג' }[zone]
+}
+
+export function getZoneName(zone: ZoneKey): string {
+  return { zone_a: 'הכרה', zone_b: 'מילים', zone_c: 'ערבוב' }[zone]
+}
+
+// Hebrew letter check
+const HEBREW_RE = /[\u05d0-\u05ea]/
+const AYIN = 'ע'
+
+export function countAyin(text: string): number {
+  return [...text].filter((c) => c === AYIN).length
+}
+
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+
 export function useTyping(initialLesson: Lesson) {
+  // ── Core state ──────────────────────────────────────────────────────────────
   const typed = ref('')
   const accuracy = ref(100)
   const wpm = ref(0)
@@ -34,8 +76,88 @@ export function useTyping(initialLesson: Lesson) {
   const currentStage = ref<Stage | null>(null)
   const allStages = ref<Stage[]>([])
 
-  // ── Navigation indices ──────────────────────────────────────────────────────
+  // ── Zone state ──────────────────────────────────────────────────────────────
+  const currentZoneIndex = ref(0)
+  const zoneComplete = ref(false)
 
+  const availableZones = computed(() => getZones(currentLesson.value))
+
+  const currentZone = computed<ZoneKey>(
+    () => availableZones.value[currentZoneIndex.value] ?? 'zone_c'
+  )
+
+  const isLastZone = computed(
+    () => currentZoneIndex.value >= availableZones.value.length - 1
+  )
+
+  // ── Exercise mode ───────────────────────────────────────────────────────────
+  const exerciseMode = computed<ExerciseMode>(
+    () => (currentLesson.value.exercise_mode as ExerciseMode) ?? 'copy'
+  )
+
+  // recall mode: text is hidden after the user clicks "ready"
+  const recallReady = ref(false)   // user has read the text and clicked ready
+  const recallHidden = ref(false)  // text is now hidden, typing begins
+
+  // ── Session timer (Baddeley & Longman 1978: 20 min max) ────────────────────
+  const SESSION_MAX_MS = 20 * 60 * 1000
+  const sessionElapsedMs = ref(0)
+  const sessionWarning = ref(false)   // at 18 min
+  const sessionExpired = ref(false)   // at 20 min
+  let sessionTimerInterval: ReturnType<typeof setInterval> | null = null
+
+  function startSessionTimer() {
+    if (sessionTimerInterval) return
+    sessionTimerInterval = setInterval(() => {
+      sessionElapsedMs.value += 1000
+      if (sessionElapsedMs.value >= SESSION_MAX_MS) {
+        sessionExpired.value = true
+        sessionWarning.value = false
+        stopSessionTimer()
+      } else if (sessionElapsedMs.value >= 18 * 60 * 1000) {
+        sessionWarning.value = true
+      }
+    }, 1000)
+  }
+
+  function stopSessionTimer() {
+    if (sessionTimerInterval) {
+      clearInterval(sessionTimerInterval)
+      sessionTimerInterval = null
+    }
+  }
+
+  const sessionMinutesLeft = computed(() => {
+    const remaining = SESSION_MAX_MS - sessionElapsedMs.value
+    return Math.max(0, Math.ceil(remaining / 60000))
+  })
+
+  const sessionSecondsDisplay = computed(() => {
+    const remaining = Math.max(0, SESSION_MAX_MS - sessionElapsedMs.value)
+    const m = Math.floor(remaining / 60000)
+    const s = Math.floor((remaining % 60000) / 1000)
+    return `${m}:${s.toString().padStart(2, '0')}`
+  })
+
+  // ── ע (ayin) tracking ───────────────────────────────────────────────────────
+  const ayinCorrect = ref(0)
+  const ayinTotal = ref(0)
+
+  const ayinAccuracy = computed(() =>
+    ayinTotal.value === 0 ? null : Math.round((ayinCorrect.value / ayinTotal.value) * 100)
+  )
+
+  // ── Lesson completion summary ───────────────────────────────────────────────
+  const showSummary = ref(false)
+  const summaryData = ref<{
+    accuracy: number
+    wpm: number
+    ayinAccuracy: number | null
+    timeUsedMs: number
+    hasAyinCheck: boolean
+  } | null>(null)
+
+  // ── Navigation indices ──────────────────────────────────────────────────────
   const currentStageIndex = computed(() =>
     allStages.value.findIndex((s) => s.stage_id === currentStage.value?.stage_id)
   )
@@ -43,15 +165,13 @@ export function useTyping(initialLesson: Lesson) {
   const currentLessonIndex = computed(() => {
     if (!currentStage.value) return -1
     return currentStage.value.lessons.findIndex(
-      (l) => l.title === currentLesson.value.title
+      (l) => l.lesson_id
+        ? l.lesson_id === currentLesson.value.lesson_id
+        : l.title === currentLesson.value.title
     )
   })
 
-  // ── Navigation capability flags ─────────────────────────────────────────────
-
-  const canGoPrev = computed(
-    () => currentLessonIndex.value > 0
-  )
+  const canGoPrev = computed(() => currentLessonIndex.value > 0)
 
   const canGoNext = computed(
     () =>
@@ -65,35 +185,55 @@ export function useTyping(initialLesson: Lesson) {
     () => currentStageIndex.value < allStages.value.length - 1
   )
 
-  // Highlight the next-stage button when the last lesson of the stage is complete
-  const highlightNextStage = computed(
-    () =>
-      isComplete.value &&
-      !canGoNext.value &&
-      canGoNextStage.value
-  )
-
   // ── Core typing state ───────────────────────────────────────────────────────
+  const currentTarget = computed(() => {
+    const lesson = currentLesson.value
+    if (exerciseMode.value === 'free') return ''
+    const zone = currentZone.value
+    const zoneText = getZoneText(lesson, zone)
+    if (zoneText) return zoneText
+    // fallback
+    if (lesson.exercise_zones) {
+      const zones = getZones(lesson)
+      for (const z of zones) {
+        const t = getZoneText(lesson, z)
+        if (t) return t
+      }
+    }
+    return lesson.exercise ?? lesson.text
+  })
 
   const nextKey = computed(() => {
-    const target = getTarget(currentLesson.value)
-    return typed.value.length < target.length ? target[typed.value.length] : ''
+    if (exerciseMode.value === 'free') return ''
+    const t = currentTarget.value
+    return typed.value.length < t.length ? t[typed.value.length] : ''
+  })
+
+  const isZoneDone = computed(() => {
+    if (exerciseMode.value === 'free') return false
+    const t = currentTarget.value
+    return t.length > 0 && typed.value.length >= t.length
   })
 
   const isComplete = computed(() => {
-    const target = getTarget(currentLesson.value)
-    return target.length > 0 && typed.value.length >= target.length
+    if (exerciseMode.value === 'free') return false
+    return isZoneDone.value && isLastZone.value
   })
 
+  const highlightNextStage = computed(
+    () => isComplete.value && !canGoNext.value && canGoNextStage.value
+  )
+
   const displayText = computed(() => {
-    if (!currentLesson.value) return ''
-    const target = getTarget(currentLesson.value)
+    if (exerciseMode.value === 'free') return ''
+    if (exerciseMode.value === 'recall' && recallHidden.value) return ''
+    const target = currentTarget.value
     let html = ''
     for (let i = 0; i < target.length; i++) {
-      const c = target[i]
+      const c = target[i] === ' ' ? '\u00a0' : target[i]
       if (i < typed.value.length) {
         html +=
-          typed.value[i] === c
+          typed.value[i] === target[i]
             ? `<span class="correct">${c}</span>`
             : `<span class="wrong">${c}</span>`
       } else if (i === typed.value.length) {
@@ -105,24 +245,24 @@ export function useTyping(initialLesson: Lesson) {
     return html
   })
 
-  // ── Auto-advance on completion ──────────────────────────────────────────────
-
+  // ── Auto-advance zone on completion ────────────────────────────────────────
   let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null
 
-  watch(isComplete, (done) => {
+  watch(isZoneDone, (done) => {
     if (!done) return
     if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer)
     autoAdvanceTimer = setTimeout(() => {
-      if (canGoNext.value) {
-        goNextLesson()
-      } else if (canGoNextStage.value) {
-        goNextStage()
+      if (!isLastZone.value) {
+        // advance to next zone
+        advanceZone()
+      } else {
+        // lesson complete — show summary
+        triggerLessonComplete()
       }
-    }, 800) // short pause so the user sees the completed state
+    }, 600)
   })
 
   // ── Internal helpers ────────────────────────────────────────────────────────
-
   const resetTyping = () => {
     typed.value = ''
     accuracy.value = 100
@@ -132,48 +272,95 @@ export function useTyping(initialLesson: Lesson) {
     lastKey.value = ''
     heldKey.value = ''
     mistakeKey.value = ''
+    ayinCorrect.value = 0
+    ayinTotal.value = 0
+    recallReady.value = false
+    recallHidden.value = false
+    showSummary.value = false
+    summaryData.value = null
     if (autoAdvanceTimer) {
       clearTimeout(autoAdvanceTimer)
       autoAdvanceTimer = null
     }
   }
 
+  const resetZone = () => {
+    typed.value = ''
+    accuracy.value = 100
+    wpm.value = 0
+    progress.value = 0
+    start.value = null
+    lastKey.value = ''
+    mistakeKey.value = ''
+    recallReady.value = false
+    recallHidden.value = false
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer)
+      autoAdvanceTimer = null
+    }
+  }
+
+  const advanceZone = () => {
+    if (isLastZone.value) return
+    currentZoneIndex.value++
+    resetZone()
+  }
+
+  const triggerLessonComplete = () => {
+    summaryData.value = {
+      accuracy: accuracy.value,
+      wpm: wpm.value,
+      ayinAccuracy: currentLesson.value.ayin_check ? ayinAccuracy.value : null,
+      timeUsedMs: sessionElapsedMs.value,
+      hasAyinCheck: currentLesson.value.ayin_check ?? false,
+    }
+    showSummary.value = true
+  }
+
   const saveLessonProgress = () => {
-    const lessonId = currentLesson.value.title
+    const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
     lessonProgress.value[lessonId] = typed.value
     localStorage.setItem('lessonProgress', JSON.stringify(lessonProgress.value))
   }
 
-  const restoreLessonProgress = (lesson: Lesson) => {
-    const saved = lessonProgress.value[lesson.title]
-    typed.value = saved ?? ''
-    if (typed.value.length > 0) start.value = new Date()
-  }
-
   const applyLesson = (lesson: Lesson) => {
     currentLesson.value = lesson
-    restoreLessonProgress(lesson)
+    currentZoneIndex.value = 0
+    resetTyping()
+    // restore progress for zone_c only (the main zone)
+    const lessonId = lesson.lesson_id ?? lesson.title
+    const saved = lessonProgress.value[lessonId]
+    if (saved) {
+      typed.value = saved
+      if (typed.value.length > 0) start.value = new Date()
+    }
     accuracy.value = 100
     wpm.value = 0
     progress.value = Math.min(
       100,
-      Math.round((typed.value.length / getTarget(lesson).length) * 100)
+      currentTarget.value.length > 0
+        ? Math.round((typed.value.length / currentTarget.value.length) * 100)
+        : 0
     )
     lastKey.value = typed.value.slice(-1)
-    if (typed.value.length > 0 && !start.value) start.value = new Date()
   }
 
   // ── Navigation actions ──────────────────────────────────────────────────────
-
   const goPrevLesson = () => {
     if (!canGoPrev.value || !currentStage.value) return
-    resetTyping()
+    stopSessionTimer()
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
     applyLesson(currentStage.value.lessons[currentLessonIndex.value - 1])
   }
 
   const goNextLesson = () => {
     if (!canGoNext.value || !currentStage.value) return
-    resetTyping()
+    stopSessionTimer()
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
     applyLesson(currentStage.value.lessons[currentLessonIndex.value + 1])
   }
 
@@ -181,7 +368,10 @@ export function useTyping(initialLesson: Lesson) {
     if (!canGoPrevStage.value) return
     const stage = allStages.value[currentStageIndex.value - 1]
     currentStage.value = stage
-    resetTyping()
+    stopSessionTimer()
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
     applyLesson(stage.lessons[0])
   }
 
@@ -189,12 +379,32 @@ export function useTyping(initialLesson: Lesson) {
     if (!canGoNextStage.value) return
     const stage = allStages.value[currentStageIndex.value + 1]
     currentStage.value = stage
-    resetTyping()
+    stopSessionTimer()
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
     applyLesson(stage.lessons[0])
   }
 
-  // ── Public API (kept for backwards compat) ──────────────────────────────────
+  const dismissSummaryAndAdvance = () => {
+    showSummary.value = false
+    summaryData.value = null
+    if (canGoNext.value) {
+      goNextLesson()
+    } else if (canGoNextStage.value) {
+      goNextStage()
+    }
+  }
 
+  const dismissSummaryAndStay = () => {
+    showSummary.value = false
+    summaryData.value = null
+    // reset to beginning of lesson
+    currentZoneIndex.value = 0
+    resetTyping()
+  }
+
+  // ── Public API ──────────────────────────────────────────────────────────────
   const clearAllProgress = () => {
     resetTyping()
     lessonProgress.value = {}
@@ -204,17 +414,28 @@ export function useTyping(initialLesson: Lesson) {
   }
 
   const restartLesson = () => {
-    clearAllProgress()
-    if (allStages.value.length > 0) {
-      currentStage.value = allStages.value[0]
-      currentLesson.value = allStages.value[0].lessons[0]
-    }
+    stopSessionTimer()
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
+    currentZoneIndex.value = 0
+    resetTyping()
   }
 
-  /** Legacy: select an arbitrary lesson within the current stage */
   const selectLesson = (lesson: Lesson) => {
-    resetTyping()
+    stopSessionTimer()
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
     applyLesson(lesson)
+  }
+
+  // recall mode: user signals they've read the text
+  const startRecall = () => {
+    recallReady.value = true
+    recallHidden.value = true
+    typed.value = ''
+    start.value = null
   }
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -223,41 +444,73 @@ export function useTyping(initialLesson: Lesson) {
 
   const triggerEnglishWarning = () => {
     englishWarning.value = true
-    window.clearTimeout((triggerEnglishWarning as any).timer)
-    ;(triggerEnglishWarning as any).timer = window.setTimeout(() => {
+    window.clearTimeout((triggerEnglishWarning as any)._timer)
+    ;(triggerEnglishWarning as any)._timer = window.setTimeout(() => {
       englishWarning.value = false
     }, 1400)
   }
 
   const triggerMistake = (key: string) => {
     mistakeKey.value = key
-    window.clearTimeout((triggerMistake as any).timer)
-    ;(triggerMistake as any).timer = window.setTimeout(() => {
+    window.clearTimeout((triggerMistake as any)._timer)
+    ;(triggerMistake as any)._timer = window.setTimeout(() => {
       mistakeKey.value = ''
     }, 360)
   }
 
   const onKeyUp = () => {
-    heldKey.value = ''
+    heldKey.value = '' 
   }
 
   const clearHeldKey = () => {
     heldKey.value = ''
   }
 
-  const onInput = () => {
-    if (!start.value) start.value = new Date()
+  const onInput = (e?: Event) => {
+    // English keyboard detection
+    if (e && exerciseMode.value !== 'free') {
+      const textarea = e.target as HTMLTextAreaElement
+      const lastChar = textarea.value.slice(-1)
+      if (lastChar && /[a-zA-Z]/.test(lastChar)) {
+        triggerEnglishWarning()
+        // strip the latin character
+        typed.value = textarea.value.slice(0, -1)
+        textarea.value = typed.value
+        return
+      }
+    }
 
-    const target = getTarget(currentLesson.value)
+    if (!start.value) {
+      start.value = new Date()
+      startSessionTimer()
+    }
+
+    if (exerciseMode.value === 'free') {
+      lastKey.value = typed.value.slice(-1)
+      saveLessonProgress()
+      return
+    }
+
+    const target = currentTarget.value
     let correct = 0
+    let ayinC = 0
+    let ayinT = 0
 
     for (let i = 0; i < typed.value.length; i++) {
-      if (typed.value[i] === target[i]) {
+      const expected = target[i]
+      const actual = typed.value[i]
+      if (actual === expected) {
         correct++
+        if (expected === AYIN) ayinC++
       } else {
-        const expected = target[i]
         weak.value[expected] = (weak.value[expected] ?? 0) + 1
       }
+      if (expected === AYIN) ayinT++
+    }
+
+    if (currentLesson.value.ayin_check) {
+      ayinCorrect.value = ayinC
+      ayinTotal.value = ayinT
     }
 
     accuracy.value =
@@ -289,33 +542,33 @@ export function useTyping(initialLesson: Lesson) {
 
     const lesson: Lesson = {
       title: 'תרגיל חיזוק',
-      text: (weakLetters.join(' ') + ' ').repeat(100)
+      text: 'תרגיל מותאם אישית — האותיות שגרמו לך לטעויות הכי הרבה.',
+      exercise_zones: {
+        zone_a: null,
+        zone_b: null,
+        zone_c: (weakLetters.join(' ') + ' ').repeat(20).trim()
+      },
+      exercise_mode: 'copy',
+      ayin_check: weakLetters.includes(AYIN)
     }
 
     currentLesson.value = lesson
+    currentZoneIndex.value = 0
     resetTyping()
   }
 
   // ── Bootstrap ───────────────────────────────────────────────────────────────
-
   onMounted(async () => {
-    const stageNumbers = [1, 2, 3, 4, 5, 6]
     try {
-      for (const num of stageNumbers) {
-        const response = await fetch(`/stage_${num}.json`)
-        if (response.ok) {
-          const stage: Stage = await response.json()
-          allStages.value.push(stage)
-          if (currentLesson.value?.title && !currentStage.value) {
-            const match = stage.lessons.find(
-              (l) => l.title === currentLesson.value.title
-            )
-            if (match) currentStage.value = stage
-          }
-        }
+      const fetches = [1, 2, 3, 4, 5, 6].map((n) =>
+        fetch(`/stage_${n}.json`).then((r) => (r.ok ? r.json() : null))
+      )
+      const results = await Promise.all(fetches)
+      for (const stage of results) {
+        if (stage) allStages.value.push(stage as Stage)
       }
 
-      if (allStages.value.length > 0 && !currentLesson.value?.title) {
+      if (allStages.value.length > 0) {
         currentStage.value = allStages.value[0]
         currentLesson.value = allStages.value[0].lessons[0]
       }
@@ -328,8 +581,10 @@ export function useTyping(initialLesson: Lesson) {
 
     const savedProgress = localStorage.getItem('lessonProgress')
     if (savedProgress) lessonProgress.value = JSON.parse(savedProgress)
+  })
 
-    restoreLessonProgress(currentLesson.value)
+  onUnmounted(() => {
+    stopSessionTimer()
   })
 
   return {
@@ -344,10 +599,36 @@ export function useTyping(initialLesson: Lesson) {
     mistakeKey,
     englishWarning,
     isComplete,
+    isZoneDone,
     currentLesson,
     currentStage,
     allStages,
     displayText,
+    exerciseMode,
+    // zone state
+    currentZone,
+    currentZoneIndex,
+    availableZones,
+    isLastZone,
+    advanceZone,
+    // recall mode
+    recallReady,
+    recallHidden,
+    startRecall,
+    // session timer
+    sessionElapsedMs,
+    sessionWarning,
+    sessionExpired,
+    sessionSecondsDisplay,
+    sessionMinutesLeft,
+    // ayin tracking
+    ayinAccuracy,
+    ayinTotal,
+    // lesson summary
+    showSummary,
+    summaryData,
+    dismissSummaryAndAdvance,
+    dismissSummaryAndStay,
     // navigation flags
     canGoPrev,
     canGoNext,
@@ -369,6 +650,6 @@ export function useTyping(initialLesson: Lesson) {
     selectLesson,
     restartLesson,
     clearAllProgress,
-    generateWeakLesson
+    generateWeakLesson,
   }
 }

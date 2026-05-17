@@ -187,26 +187,34 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
 .hand-guide {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  padding: 6px 0 0;
+  gap: 8px;
+  padding: 2px 0 0;
   direction: ltr;
   background: transparent;
   border-radius: 0;
   border: none;
   box-shadow: none;
+  flex-shrink: 0;
 }
 
 @media (max-width: 480px) {
   .hand-guide {
-    gap: 10px;
-    padding: 4px 0 0;
+    gap: 6px;
+    padding: 2px 0 0;
+  }
+}
+
+@media (max-height: 600px) {
+  .hand-guide {
+    gap: 4px;
+    padding: 1px 0 0;
   }
 }
 
 .hand-icon {
-  width: 52px;
-  min-width: 52px;
-  height: 52px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,9 +222,17 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
 
 @media (max-width: 480px) {
   .hand-icon {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-height: 600px) {
+  .hand-icon {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
   }
 }
 .hand-icon svg {

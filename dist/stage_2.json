@@ -7,7 +7,7 @@
     {
       "lesson_id": "s2_l1",
       "title": "הכרת ו — מורה שמאל עולה (#3 בתדירות)",
-      "phase_label": "קוגניטיבי",
+      "phase_label": "cognitive",
       "salthouse_target": "translation",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. תרגל: כ, ו, כ, ו — עד שהתנועה חלקה לפני שמתחילים.",
@@ -22,7 +22,7 @@
     {
       "lesson_id": "s2_l2",
       "title": "הכרת א — אמה שמאל עולה (#4 בתדירות)",
-      "phase_label": "קוגניטיבי",
+      "phase_label": "cognitive",
       "salthouse_target": "translation",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. שמור את שאר האצבעות על הבית כשהאמה עולה.",
@@ -37,7 +37,7 @@
     {
       "lesson_id": "s2_l3",
       "title": "הכרת ר — קמיצה ימין עולה (#5 בתדירות)",
-      "phase_label": "קוגניטיבי",
+      "phase_label": "cognitive",
       "salthouse_target": "translation",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -52,7 +52,7 @@
     {
       "lesson_id": "s2_l4",
       "title": "הכרת ת — זרת שמאל עולה (#7 בתדירות) — הגיע הזמן",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -67,7 +67,7 @@
     {
       "lesson_id": "s2_l5",
       "title": "הכרת ק — מורה ימין עולה",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -82,7 +82,7 @@
     {
       "lesson_id": "s2_l6",
       "title": "הכרת ט — אמה ימין עולה (ואזהרה על התרגיל הקשה)",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -97,7 +97,7 @@
     {
       "lesson_id": "s2_l7",
       "title": "ערבוב — כל 14 האותיות, ידיים מתחלפות",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. אם אצבע מגמגמת — עצור, תרגל אותה לבד, חזור.",
@@ -112,7 +112,7 @@
     {
       "lesson_id": "s2_l8",
       "title": "אתגר סיכום — שלב 2",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שלוש שגיאות או פחות — עובר לשלב 3. יותר מזה — חזור לשיעורים 4–5.",

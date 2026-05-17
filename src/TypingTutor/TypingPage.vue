@@ -1,16 +1,64 @@
 <template>
   <div class="typing-card">
+
+    <!-- ── English keyboard warning ── -->
     <div v-if="englishWarning" class="warning-popup">
-      ⚠️ הקלדה באנגלית - עבור לעברית
+      ⚠️ הקלדה באנגלית — עבור לעברית
     </div>
 
+    <!-- ── Session expired overlay ── -->
+    <div v-if="sessionExpired" class="session-overlay">
+      <div class="session-overlay-box">
+        <div class="session-overlay-icon">⏱</div>
+        <div class="session-overlay-title">20 דקות הסתיימו</div>
+        <div class="session-overlay-body">
+          לפי מחקר Baddeley &amp; Longman (1978), שיעור אחד ביום של עד 20 דקות הוא האפקטיבי ביותר.
+          עצור כאן. חזור מחר.
+        </div>
+        <button class="session-overlay-btn" @click="restartLesson">אישור — אחזור מחר</button>
+      </div>
+    </div>
+
+    <!-- ── Lesson completion summary ── -->
+    <div v-if="showSummary" class="summary-overlay">
+      <div class="summary-box">
+        <div class="summary-title">✓ שיעור הושלם</div>
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <span class="summary-stat-value">{{ summaryData?.accuracy }}%</span>
+            <span class="summary-stat-label">דיוק</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-stat-value">{{ summaryData?.wpm }}</span>
+            <span class="summary-stat-label">תווים/דקה</span>
+          </div>
+          <div v-if="summaryData?.hasAyinCheck && summaryData?.ayinAccuracy !== null" class="summary-stat" :class="{ 'ayin-warn': (summaryData?.ayinAccuracy ?? 100) < 80 }">
+            <span class="summary-stat-value">{{ summaryData?.ayinAccuracy }}%</span>
+            <span class="summary-stat-label">דיוק ע</span>
+          </div>
+        </div>
+        <div v-if="summaryData?.hasAyinCheck && (summaryData?.ayinAccuracy ?? 100) < 80" class="ayin-feedback">
+          הזרת הימנית (ע) מתחת ל-80% — שקול לחזור על שיעור ע לפני שממשיך.
+        </div>
+        <div class="summary-actions">
+          <button class="summary-btn secondary" @click="dismissSummaryAndStay">חזור על השיעור</button>
+          <button class="summary-btn primary" @click="dismissSummaryAndAdvance">
+            {{ canGoNext ? 'שיעור הבא' : canGoNextStage ? 'שלב הבא' : 'סיום' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Navigation bar ── -->
     <NavigationButtons
-      :lesson-title="currentLesson?.title"
       :can-go-prev="canGoPrev"
       :can-go-next="canGoNext"
       :can-go-prev-stage="canGoPrevStage"
       :can-go-next-stage="canGoNextStage"
       :highlight-next-stage="highlightNextStage"
+      :phase-label="currentLesson?.phase_label"
+      :session-seconds-display="sessionSecondsDisplay"
+      :session-warning="sessionWarning"
       @prev-stage="goPrevStage"
       @prev-lesson="goPrevLesson"
       @restart-lesson="restartLesson"
@@ -18,49 +66,136 @@
       @next-stage="goNextStage"
     />
 
-    <div v-if="currentLesson?.text" class="lesson-instructions">
-      <div class="lesson-instructions-text" v-html="currentLesson.text"></div>
+    <!-- ── Main content ── -->
+    <div class="content-area">
+
+      <!-- Lesson info card -->
+      <div v-if="currentLesson?.text" class="lesson-info">
+        <div class="lesson-content">
+          <div v-if="currentLesson?.title" class="lesson-title">{{ currentLesson.title }}</div>
+          <div class="lesson-text" v-html="currentLesson.text"></div>
+        </div>
+        <div v-if="currentLesson?.session_guidance" class="guidance-hint">
+          📋 {{ currentLesson.session_guidance }}
+        </div>
+      </div>
+
+      <!-- Zone progress indicator (only when multiple zones exist) -->
+      <div v-if="availableZones.length > 1" class="zone-bar">
+        <div
+          v-for="(zone, i) in availableZones"
+          :key="zone"
+          class="zone-pip"
+          :class="{
+            'zone-pip--done': i < currentZoneIndex,
+            'zone-pip--active': i === currentZoneIndex,
+          }"
+        >
+          <span class="zone-pip-label">{{ getZoneName(zone) }}</span>
+        </div>
+      </div>
+
+      <!-- Recall mode: show text → hide → type -->
+      <div v-if="exerciseMode === 'recall' && !recallReady" class="recall-panel">
+        <div class="recall-text" dir="rtl">{{ currentTarget }}</div>
+        <button class="recall-btn" @click="startRecall">קראתי — הסתר והתחל</button>
+      </div>
+
+      <!-- Free mode: no target, just a textarea -->
+      <div v-else-if="exerciseMode === 'free'" class="free-panel">
+        <textarea
+          class="free-input"
+          v-model="typed"
+          @input="onInput"
+          @keydown="onKeyDown"
+          @keyup="onKeyUp"
+          placeholder="הקלד חופשי..."
+          dir="rtl"
+          autofocus
+        ></textarea>
+      </div>
+
+      <!-- Copy / recall-hidden mode: exercise strip + input strip -->
+      <InputArea
+        v-else
+        :model-value="typed"
+        :display-text="displayText"
+        :is-hidden="exerciseMode === 'recall' && recallHidden"
+        @update:modelValue="typed = $event"
+        @input="onInput"
+        @keydown="onKeyDown"
+        @keyup="onKeyUp"
+        @blur="onBlur"
+      />
+
     </div>
 
-    <InputArea
-      :model-value="typed"
-      :display-text="displayText"
-      @update:modelValue="typed = $event"
-      @input="onInput"
-      @keydown="onKeyDown"
-      @keyup="onKeyUp"
-      @blur="onBlur"
+    <!-- ── Stats bar ── -->
+    <StatsBar
+      :accuracy="accuracy"
+      :wpm="wpm"
+      :progress="progress"
+      :ayin-accuracy="currentLesson?.ayin_check ? ayinAccuracy : null"
     />
 
+    <!-- ── Hand guide ── -->
     <HandGuide :next-key="nextKey" />
 
+    <!-- ── Keyboard display ── -->
     <KeyboardDisplay
-      :keyboard="keyboard"
       :last-key="lastKey"
       :held-key="heldKey"
       :next-key="nextKey"
       :mistake-key="mistakeKey"
     />
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from './KeyboardDisplay.vue'
 import HandGuide from './HandGuide.vue'
-import { useTyping } from './UseTyping'
+import StatsBar from './StatsBar.vue'
+import { useTyping, getZoneName } from './UseTyping'
 
 const {
   typed,
-  currentLesson,
-  displayText,
-  nextKey,
-  englishWarning,
+  accuracy,
+  wpm,
+  progress,
   lastKey,
   heldKey,
+  nextKey,
   mistakeKey,
+  englishWarning,
+  isComplete,
+  currentLesson,
+  currentStage,
+  displayText,
+  exerciseMode,
+  // zone
+  currentZone,
+  currentZoneIndex,
+  availableZones,
+  isLastZone,
+  // recall
+  recallReady,
+  recallHidden,
+  startRecall,
+  // session timer
+  sessionSecondsDisplay,
+  sessionWarning,
+  sessionExpired,
+  // ayin
+  ayinAccuracy,
+  // summary
+  showSummary,
+  summaryData,
+  dismissSummaryAndAdvance,
+  dismissSummaryAndStay,
   // navigation flags
   canGoPrev,
   canGoNext,
@@ -77,22 +212,20 @@ const {
   onInput,
   onKeyDown,
   onKeyUp,
+  // current target (for recall display)
+  currentTarget,
 } = useTyping({ title: '', text: '' })
 
-const keyboard = ref<string[][]>([])
+// expose currentTarget for recall panel
+// (it's already returned from useTyping)
 
-function onBlur() {
-  // blur logic here
-}
+function onBlur() {}
 </script>
 
 <style>
-/* ── Reset: ensure the full ancestor chain has height ── */
 *,
 *::before,
-*::after {
-  box-sizing: border-box;
-}
+*::after { box-sizing: border-box; }
 
 html {
   height: 100%;
@@ -132,15 +265,14 @@ body {
   --accent-primary: #0078d4;
   --accent-secondary: #50e6ff;
   --success-color: #107c10;
-  --warning-color: #ffd700;
+  --warning-color: #d97706;
   --error-color: #e81b23;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.12);
-  --card-radius: 12px;
-  --card-padding: 20px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
+  --shadow-lg: 0 12px 28px rgba(0,0,0,0.12);
   --card-bg: var(--bg-secondary);
-  --card-border: rgba(16, 20, 24, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.2) transparent;
 }
 
 [data-theme='dark'] {
@@ -155,94 +287,408 @@ body {
   --accent-primary: #0078d4;
   --accent-secondary: #50e6ff;
   --success-color: #13a538;
-  --warning-color: #ffb900;
+  --warning-color: #f59e0b;
   --error-color: #f7630c;
-  --card-border: rgba(255, 255, 255, 0.08);
   --card-bg: var(--bg-secondary);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 28px rgba(0,0,0,0.4);
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
+[data-theme='dark'] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); }
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
 </style>
 
 <style scoped>
+/* ── Shell ── */
 .typing-card {
   background: var(--card-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   width: 100%;
   height: 100dvh;
   min-height: 0;
-  border-radius: 0;
-  padding: 14px;
-  box-shadow: none;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border: none;
+  gap: 6px;
+  overflow: hidden;
   transition: background 300ms ease, color 300ms ease;
 }
 
-@media (max-width: 480px) {
-  .typing-card {
-    padding: 12px;
-    gap: 10px;
-  }
+@media (max-width: 480px) { .typing-card { padding: 6px; gap: 4px; } }
+@media (max-height: 600px) { .typing-card { padding: 4px; gap: 3px; } }
+
+/* ── Content area ── */
+.content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.lesson-instructions {
-  width: 100%;
-  border-radius: 14px;
+@media (max-width: 480px) { .content-area { gap: 6px; } }
+@media (max-height: 600px) { .content-area { gap: 4px; } }
+
+/* ── Lesson info card ── */
+.lesson-info {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  padding: 12px 14px;
-  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
+  padding: 10px 12px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.lesson-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.lesson-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+.lesson-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.guidance-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: rgba(0,120,212,0.06);
+  padding: 7px 10px;
+  border-radius: 6px;
+  border-right: 2px solid var(--accent-primary);
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .lesson-info { padding: 8px 10px; gap: 4px; }
+  .lesson-title { font-size: 13px; }
+  .lesson-text { font-size: 12px; }
+  .guidance-hint { font-size: 10px; padding: 5px 8px; }
+}
+
+@media (max-height: 600px) {
+  .lesson-info { padding: 6px 8px; gap: 3px; }
+  .lesson-title { font-size: 12px; }
+  .lesson-text { font-size: 11px; line-height: 1.4; }
+  .guidance-hint { font-size: 10px; padding: 4px 6px; }
+}
+
+/* ── Zone progress bar ── */
+.zone-bar {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  direction: rtl;
+}
+
+.zone-pip {
+  flex: 1;
+  height: 24px;
+  border-radius: 5px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  transition: background 200ms, color 200ms, border-color 200ms;
+}
+
+.zone-pip--active {
+  background: rgba(0,120,212,0.12);
+  border-color: rgba(0,120,212,0.3);
+  color: var(--accent-primary);
+}
+
+.zone-pip--done {
+  background: rgba(16,124,16,0.1);
+  border-color: rgba(16,124,16,0.25);
+  color: var(--success-color);
+}
+
+.zone-pip-label { pointer-events: none; }
+
+@media (max-height: 600px) {
+  .zone-bar { gap: 3px; }
+  .zone-pip { height: 20px; font-size: 9px; }
+}
+
+/* ── Recall panel ── */
+.recall-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.recall-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.recall-btn {
+  align-self: flex-start;
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+
+.recall-btn:hover { opacity: 0.88; }
+
+@media (max-width: 480px) {
+  .recall-text { font-size: 13px; }
+  .recall-btn { font-size: 12px; padding: 7px 12px; }
+}
+
+/* ── Free mode panel ── */
+.free-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.free-input {
+  flex: 1 1 auto;
+  min-height: 60px;
+  resize: none;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  direction: rtl;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+
+.free-input:focus {
+  border-color: rgba(0,120,212,0.35);
+  box-shadow: 0 0 0 2px rgba(0,120,212,0.1);
+}
+
+.free-input::placeholder { color: var(--text-tertiary); }
+
+/* ── Session expired overlay ── */
+.session-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.session-overlay-box {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-overlay-icon { font-size: 36px; }
+
+.session-overlay-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.session-overlay-body {
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.55;
 }
 
-.lesson-instructions-text {
+.session-overlay-btn {
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 150ms;
+}
+
+.session-overlay-btn:hover { opacity: 0.88; }
+
+/* ── Lesson summary overlay ── */
+.summary-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.summary-box {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--success-color);
+}
+
+.summary-stats {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.summary-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summary-stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.summary-stat.ayin-warn .summary-stat-value { color: var(--warning-color); }
+
+.ayin-feedback {
+  font-size: 12px;
+  color: var(--warning-color);
+  background: rgba(217,119,6,0.08);
+  padding: 8px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.summary-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.summary-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 150ms;
+}
+
+.summary-btn:hover { opacity: 0.88; }
+
+.summary-btn.primary {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.summary-btn.secondary {
+  background: var(--bg-tertiary);
   color: var(--text-secondary);
-  white-space: pre-wrap;
+  border: 1px solid var(--border-subtle);
 }
 
-@media (max-width: 480px) {
-  .lesson-instructions {
-    padding: 10px 12px;
-    border-radius: 12px;
-  }
-}
-
+/* ── English warning popup ── */
 .warning-popup {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255, 242, 241, 0.96);
+  background: rgba(255,242,241,0.97);
   color: #991b1b;
-  border: 1px solid rgba(252, 165, 165, 0.75);
-  border-radius: 18px;
-  padding: 20px 26px;
-  font-size: 16px;
+  border: 1px solid rgba(252,165,165,0.75);
+  border-radius: 16px;
+  padding: 16px 22px;
+  font-size: 15px;
   font-weight: 700;
   text-align: center;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
-  z-index: 1000;
-  animation: popIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-width: 90%;
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  animation: popIn 280ms cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 88%;
+}
+
+[data-theme='dark'] .warning-popup {
+  background: rgba(60,20,20,0.97);
+  color: #fca5a5;
+  border-color: rgba(239,68,68,0.4);
 }
 
 @keyframes popIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.86);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  from { opacity: 0; transform: translate(-50%,-50%) scale(0.86); }
+  to   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 }
 </style>

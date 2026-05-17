@@ -121,54 +121,50 @@ function displayKey(key: string) {
 
 <style scoped>
 .keyboard {
-  margin: 4px auto 0 auto;
+  margin: 2px auto 0 auto;
   background: var(--bg-secondary);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  padding: 6px;
-  border-radius: 14px;
+  padding: 4px;
+  border-radius: 10px;
   border: 1px solid var(--border-subtle);
   direction: ltr;
-  /* Fill the parent, never exceed it, never cause horizontal scroll */
   width: 100%;
   max-width: 500px;
   box-sizing: border-box;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
   transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+  flex-shrink: 0;
 }
 
 .row {
   display: flex;
   width: 100%;
   box-sizing: border-box;
-  /* margin-right on keys instead of gap — avoids Android WebView flex-overflow bug */
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   flex-wrap: nowrap;
 }
 
 .row:last-child { margin-bottom: 0; }
 
 .key {
-  /* flex sizing — units set via :style binding */
   flex: 1 1 0;
-  /* CRITICAL: min-width + width:0 prevents text content from blowing out row width */
   min-width: 0;
   width: 0;
-  /* Use margin-right instead of gap on the row */
-  margin-right: 2px;
-  height: clamp(20px, 4.8vw, 26px);
+  margin-right: 1px;
+  height: clamp(18px, 4.2vw, 22px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 5px;
+  border-radius: 4px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  font-size: clamp(8px, 1.9vw, 10px);
+  font-size: clamp(7px, 1.6vw, 9px);
   font-weight: 500;
   color: var(--text-primary);
   box-shadow: none;
-  padding: 0 2px;
+  padding: 0 1px;
   white-space: nowrap;
   overflow: hidden;
   box-sizing: border-box;
@@ -181,6 +177,24 @@ function displayKey(key: string) {
 
 .row .key:last-child {
   margin-right: 0;
+}
+
+@media (max-height: 600px) {
+  .keyboard {
+    padding: 3px;
+    margin: 1px auto 0 auto;
+  }
+  
+  .row {
+    margin-bottom: 1px;
+  }
+  
+  .key {
+    height: clamp(16px, 3.8vw, 20px);
+    font-size: clamp(6px, 1.4vw, 8px);
+    border-radius: 3px;
+    margin-right: 1px;
+  }
 }
 
 .key.active {

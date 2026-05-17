@@ -1,6 +1,11 @@
 <template>
   <div class="button-row">
-    <div class="lesson-heading">{{ lessonTitle }}</div>
+    <div class="phase-display" v-if="phaseLabel">{{ phaseLabel }}</div>
+    <div
+      v-if="sessionSecondsDisplay"
+      class="session-timer"
+      :class="{ 'session-timer--warn': sessionWarning }"
+    >⏱ {{ sessionSecondsDisplay }}</div>
     <div class="button-group">
       <button
         class="nav-button stage-button"
@@ -77,12 +82,14 @@ import { useDarkMode } from '../composables/useDarkMode'
 const { isDarkMode, toggleDarkMode } = useDarkMode()
 
 defineProps<{
-  lessonTitle?: string
   canGoPrev?: boolean
   canGoNext?: boolean
   canGoPrevStage?: boolean
   canGoNextStage?: boolean
   highlightNextStage?: boolean
+  phaseLabel?: string
+  sessionSecondsDisplay?: string
+  sessionWarning?: boolean
 }>()
 
 defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage'])
@@ -91,60 +98,123 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 <style scoped>
 .button-row { 
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  padding: 10px 8px;
+  padding: 6px 6px;
   background: var(--bg-secondary);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--border-subtle);
   transition: background 240ms ease, box-shadow 240ms ease, transform 180ms ease;
 }
 
 @media (max-width: 480px) {
   .button-row { 
-    gap: 6px;
-    padding: 8px;
-    border-radius: 12px;
+    gap: 4px;
+    padding: 5px 4px;
+    border-radius: 10px;
   }
 }
 
+@media (max-height: 600px) {
+  .button-row {
+    gap: 3px;
+    padding: 4px 3px;
+    border-radius: 8px;
+  }
+}
+
+.phase-display {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: rgba(0, 120, 212, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.session-timer {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  transition: color 300ms, background 300ms;
+}
+
+.session-timer--warn {
+  color: var(--warning-color);
+  background: rgba(217, 119, 6, 0.1);
+}
+
+@media (max-width: 480px) {
+  .phase-display { font-size: 11px; padding: 3px 6px; }
+  .session-timer { font-size: 11px; padding: 3px 6px; }
+}
+
+@media (max-height: 600px) {
+  .phase-display { font-size: 10px; padding: 2px 6px; }
+  .session-timer { font-size: 10px; padding: 2px 6px; }
+}
+
 .lesson-heading { 
-  font-size: 15px; 
+  font-size: 13px; 
   font-weight: 700;
   color: var(--text-primary); 
   text-align: right;
   letter-spacing: -0.02em;
   transition: color 300ms ease;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 480px) {
   .lesson-heading { 
-    font-size: 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-height: 600px) {
+  .lesson-heading {
+    font-size: 11px;
   }
 }
 
 .button-group { 
   display: flex; 
-  gap: 8px;
+  gap: 4px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 @media (max-width: 480px) {
   .button-group { 
-    gap: 6px;
+    gap: 3px;
+  }
+}
+
+@media (max-height: 600px) {
+  .button-group {
+    gap: 2px;
   }
 }
 
 .nav-button, .reset-button {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--bg-primary);
   color: var(--text-secondary);
   font-size: 11px;
@@ -156,6 +226,7 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   justify-content: center;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .nav-button::before, .reset-button::before {
@@ -179,15 +250,23 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 
 @media (max-width: 480px) {
   .nav-button, .reset-button { 
-    width: 34px; 
-    height: 34px;
-    border-radius: 10px;
+    width: 30px; 
+    height: 30px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-height: 600px) {
+  .nav-button, .reset-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
   }
 }
 
 .icon { 
-  width: 16px; 
-  height: 16px; 
+  width: 14px; 
+  height: 14px; 
   display: inline-block; 
   vertical-align: middle;
   position: relative;
@@ -196,8 +275,15 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 
 @media (max-width: 480px) {
   .icon { 
-    width: 14px; 
-    height: 14px;
+    width: 13px; 
+    height: 13px;
+  }
+}
+
+@media (max-height: 600px) {
+  .icon {
+    width: 12px;
+    height: 12px;
   }
 }
 

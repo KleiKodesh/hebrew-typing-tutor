@@ -7,7 +7,7 @@
     {
       "lesson_id": "s4_l1",
       "title": "הכרת פ — קמיצה שמאל עולה",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -22,7 +22,7 @@
     {
       "lesson_id": "s4_l2",
       "title": "הכרת צ — אמה שמאל עולה (שים לב: לא א)",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. צ פחות שכיחה — אל תמהר.",
@@ -37,7 +37,7 @@
     {
       "lesson_id": "s4_l3",
       "title": "פ + צ יחד — מילים עם שתיהן",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -52,7 +52,7 @@
     {
       "lesson_id": "s4_l4",
       "title": "אותיות סופיות: ך ו-ם — כלל הסוף",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. הכלל: אותה אצבע, אותו מקש — רק בסוף מילה.",
@@ -67,7 +67,7 @@
     {
       "lesson_id": "s4_l5",
       "title": "אות סופית ן — נפרדת, בגלל בלבול עם ו",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום. ו ו-ן: בלבול מתועד — תפעיל תשומת לב יתרה.",
@@ -82,7 +82,7 @@
     {
       "lesson_id": "s4_l6",
       "title": "אותיות סופיות: ף ו-ץ",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -97,7 +97,7 @@
     {
       "lesson_id": "s4_l7",
       "title": "כל חמש הסופיות — בסיס↔סופית באותה נשימה",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שיעור אחד ביום.",
@@ -112,7 +112,7 @@
     {
       "lesson_id": "s4_l8",
       "title": "אתגר סיכום — שלב 4",
-      "phase_label": "אסוציאטיבי",
+      "phase_label": "associative",
       "salthouse_target": "parsing",
       "exercise_mode": "copy",
       "session_guidance": "עד 20 דקות. שלוש שגיאות או פחות — עובר לשלב 5.",
