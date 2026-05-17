@@ -1,9 +1,14 @@
 export interface Lesson {
   title: string
   text: string
+  exercise?: string
 }
 
 import { ref, computed, onMounted } from 'vue'
+
+function getTarget(lesson: Lesson) {
+  return lesson.exercise ?? lesson.text
+}
 
 export function useTyping(initialLesson: Lesson) {
   const typed = ref('')
@@ -20,14 +25,15 @@ export function useTyping(initialLesson: Lesson) {
   const currentLesson = ref<Lesson>(initialLesson)
 
   const nextKey = computed(() => {
-    const target = currentLesson.value.text
+    const target = getTarget(currentLesson.value)
     return typed.value.length < target.length
       ? target[typed.value.length]
       : ''
   })
 
   const isComplete = computed(() => {
-    return currentLesson.value.text.length > 0 && typed.value.length >= currentLesson.value.text.length
+    const target = getTarget(currentLesson.value)
+    return target.length > 0 && typed.value.length >= target.length
   })
 
   const displayText = computed(() => {
@@ -35,7 +41,7 @@ export function useTyping(initialLesson: Lesson) {
       return ''
     }
 
-    const target = currentLesson.value.text
+    const target = getTarget(currentLesson.value)
     let html = ''
 
     for (let i = 0; i < target.length; i++) {
@@ -144,7 +150,7 @@ export function useTyping(initialLesson: Lesson) {
       start.value = new Date()
     }
 
-    const target = currentLesson.value.text
+    const target = getTarget(currentLesson.value)
     let correct = 0
 
     for (let i = 0; i < typed.value.length; i++) {

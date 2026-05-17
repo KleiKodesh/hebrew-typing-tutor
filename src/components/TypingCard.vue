@@ -6,19 +6,35 @@
 
     <div class="button-row">
       <button 
+        class="nav-button stage-button" 
+        :disabled="!canGoPrevStage"
+        @click="$emit('prev-stage')"
+        title="שלב קודם"
+      >
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M6 6L13 12L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 6L20 12L13 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button 
         class="nav-button prev-button" 
         :disabled="!canGoPrev"
         @click="$emit('prev-lesson')"
         title="שיעור קודם"
       >
-        ❮
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
       <button 
         class="reset-button" 
         @click="$emit('restart-lesson')"
         title="אפס שיעור"
       >
-        ⟲
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M21 12a9 9 0 11-2.83-6.36" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 3v6h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
       <button 
         class="nav-button next-button" 
@@ -26,7 +42,20 @@
         @click="$emit('next-lesson')"
         title="שיעור הבא"
       >
-        ❯
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button 
+        class="nav-button stage-button" 
+        :disabled="!canGoNextStage"
+        @click="$emit('next-stage')"
+        title="שלב הבא"
+      >
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M11 6L4 12L11 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 6L13 12L20 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
     </div>
 
@@ -73,9 +102,11 @@ const props = defineProps<{
   englishWarning: boolean
   canGoPrev: boolean
   canGoNext: boolean
+  canGoPrevStage: boolean
+  canGoNextStage: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur', 'prev-lesson', 'next-lesson', 'restart-lesson', 'english'])
+const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur', 'prev-lesson', 'next-lesson', 'restart-lesson', 'prev-stage', 'next-stage', 'english'])
 
 function onInput(e: Event) {
   const value = (e.target as HTMLTextAreaElement).value
@@ -109,21 +140,24 @@ function onBlur() {
 .typing-card {
   background: #ffffff;
   border-radius: 18px;
-  padding: 14px;
+  padding: 10px;
   box-shadow: 0 12px 24px rgba(15,23,42,0.08);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 .sample-preview {
   color: #334155;
-  line-height: 1.7;
-  font-size: 14px;
-  padding: 12px 10px;
-  border-radius: 16px;
+  line-height: 1.6;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 12px;
   background: #f9fbff;
   border: 1px solid rgba(148,163,184,0.18);
   white-space: pre-wrap;
+  flex-shrink: 0;
 }
 :deep(.sample-preview span.current) {
   background: #fbbf24;
@@ -140,16 +174,19 @@ function onBlur() {
 .input-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 .fluent-input {
   width: 100%;
-  min-height: 116px;
+  min-height: 70px;
+  flex: 1 1 auto;
   resize: none;
-  padding: 12px 14px;
-  font-size: 15px;
-  line-height: 1.6;
-  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 12px;
   border: 1px solid rgba(148,163,184,0.24);
   background: #ffffff;
   color: #0f172a;
@@ -190,8 +227,9 @@ function onBlur() {
 }
 .button-row {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   justify-content: center;
+  flex-shrink: 0;
 }
 .nav-button,
 .reset-button {
@@ -204,6 +242,12 @@ function onBlur() {
   cursor: pointer;
   transition: all 200ms ease;
   font-weight: 600;
+}
+.icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
 }
 .nav-button:hover:not(:disabled),
 .reset-button:hover {
