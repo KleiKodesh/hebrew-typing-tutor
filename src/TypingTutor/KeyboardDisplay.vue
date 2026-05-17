@@ -97,6 +97,7 @@ function keyClasses(key: string) {
     held:    keyMatches(key, props.heldKey),
     next:    keyMatches(key, props.nextKey),
     mistake: keyMatches(key, props.mistakeKey),
+    active:  keyMatches(key, props.nextKey) || keyMatches(key, props.heldKey) || keyMatches(key, props.mistakeKey),
     special: wideKeys.has(key) || key.length > 1
   }
 }
@@ -123,16 +124,18 @@ function displayKey(key: string) {
 .keyboard {
   margin: 4px auto 0 auto;
   background: var(--bg-secondary);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 6px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
   direction: ltr;
   width: 100%;
   max-width: 500px;
   box-sizing: border-box;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-  transition: background 200ms ease, border-color 200ms ease;
+  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
 }
 
 @media (max-width: 480px) {
@@ -145,15 +148,15 @@ function displayKey(key: string) {
 .row {
   display: flex;
   width: 100%;
-  gap: 3px;
-  margin-bottom: 3px;
+  gap: 2px;
+  margin-bottom: 2px;
   flex-wrap: nowrap;
 }
 
 @media (max-width: 480px) {
   .row {
-    gap: 2px;
-    margin-bottom: 2px;
+    gap: 1px;
+    margin-bottom: 1px;
   }
 }
 
@@ -162,31 +165,37 @@ function displayKey(key: string) {
 .key {
   flex: 1 1 0;
   min-width: 0;
-  height: 20px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 7px;
+  border-radius: 6px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  font-size: clamp(7px, 1.1vw, 11px);
+  font-size: clamp(7px, 1vw, 10px);
   font-weight: 500;
   color: var(--text-primary);
   box-shadow: 0 2px 0 var(--border-color);
-  padding: 0;
+  padding: 0 4px;
   white-space: nowrap;
   overflow: hidden;
-  transition: background 0.08s, box-shadow 0.08s, color 0.08s;
+  transition: background 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
   cursor: default;
   user-select: none;
   letter-spacing: 0.01em;
+  will-change: transform, box-shadow, background;
+}
+
+.key.active {
+  transform: translateY(-0.5px) scale(1.007);
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.12);
 }
 
 @media (max-width: 480px) {
   .key {
-    height: 16px;
-    border-radius: 5px;
-    font-size: clamp(6px, 1vw, 9px);
+    height: 14px;
+    border-radius: 4px;
+    font-size: clamp(6px, 0.9vw, 8px);
     box-shadow: 0 1px 0 var(--border-color);
   }
 }

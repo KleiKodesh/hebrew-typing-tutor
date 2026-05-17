@@ -60,11 +60,11 @@
         :title="isDarkMode ? 'מצב בהיר' : 'מצב אפל'"
       >
         <svg v-if="isDarkMode" class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 1v6m0 6v6M23 12h-6M7 12H1M20.485 3.515l-4.243 4.243M7.758 17.97l-4.243 4.243M20.485 20.485l-4.243-4.243M7.758 6.242l-4.243-4.243" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <svg v-else class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 2V4M12 20V22M2 12H4M20 12H22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
     </div>
@@ -91,32 +91,33 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 <style scoped>
 .button-row { 
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  padding: 12px;
-  background: transparent;
-  border-radius: 14px;
-  box-shadow: none;
-  border: none;
-  transition: background 300ms ease, box-shadow 300ms ease, transform 180ms ease;
+  padding: 10px 8px;
+  background: var(--bg-secondary);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  transition: background 240ms ease, box-shadow 240ms ease, transform 180ms ease;
 }
 
 @media (max-width: 480px) {
   .button-row { 
-    gap: 8px;
-    padding: 10px;
-    border-radius: 10px;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 12px;
   }
 }
 
 .lesson-heading { 
-  font-size: 16px; 
-  font-weight: 600;
+  font-size: 15px; 
+  font-weight: 700;
   color: var(--text-primary); 
   text-align: right;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   transition: color 300ms ease;
 }
 
@@ -139,17 +140,17 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 }
 
 .nav-button, .reset-button {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  background: var(--bg-tertiary);
+  background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-  font-weight: 600;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -178,15 +179,15 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 
 @media (max-width: 480px) {
   .nav-button, .reset-button { 
-    width: 32px; 
-    height: 32px;
-    border-radius: 6px;
+    width: 34px; 
+    height: 34px;
+    border-radius: 10px;
   }
 }
 
 .icon { 
-  width: 14px; 
-  height: 14px; 
+  width: 16px; 
+  height: 16px; 
   display: inline-block; 
   vertical-align: middle;
   position: relative;
@@ -195,29 +196,35 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 
 @media (max-width: 480px) {
   .icon { 
-    width: 12px; 
-    height: 12px;
+    width: 14px; 
+    height: 14px;
   }
 }
 
 .nav-button:hover:not(:disabled), .reset-button:hover {
-  background: linear-gradient(180deg, var(--bg-tertiary), rgba(250,250,250,0.92));
+  background: var(--bg-tertiary);
   color: var(--accent-primary);
-  box-shadow: 0 12px 30px rgba(16,20,24,0.08);
-  border-color: rgba(0,120,212,0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(16, 20, 40, 0.08);
+  border-color: rgba(0, 120, 212, 0.18);
+  transform: translateY(-1px);
 }
 
 .nav-button:active:not(:disabled), .reset-button:active { 
   background: var(--accent-primary);
   color: white;
   transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(16,20,24,0.08);
+  box-shadow: 0 6px 14px rgba(16, 20, 40, 0.12);
 }
 
 .nav-button:disabled { 
-  opacity: 0.5; 
+  opacity: 0.55; 
   cursor: not-allowed;
+}
+
+.stage-button.highlightNextStage {
+  background: linear-gradient(180deg, rgba(0, 120, 212, 0.18), rgba(0, 120, 212, 0.08));
+  border-color: rgba(0, 120, 212, 0.3);
+  color: var(--accent-primary);
 }
 
 .dark-toggle { 

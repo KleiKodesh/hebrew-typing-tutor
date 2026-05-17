@@ -187,22 +187,26 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
 .hand-guide {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   padding: 6px 0 0;
   direction: ltr;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
 @media (max-width: 480px) {
   .hand-guide {
-    gap: 12px;
+    gap: 10px;
     padding: 4px 0 0;
   }
 }
 
 .hand-icon {
-  width: 56px;
-  min-width: 56px;
-  height: 56px;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,9 +214,9 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
 
 @media (max-width: 480px) {
   .hand-icon {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
   }
 }
 .hand-icon svg {
@@ -222,19 +226,19 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
 .hand-base {
   fill: var(--text-secondary);
   opacity: 0.18;
-  transition: fill 200ms ease;
+  transition: fill 200ms ease, opacity 200ms ease;
 }
 .finger-dot {
-  fill: var(--border-color);
-  stroke: var(--bg-primary);
+  fill: rgba(16, 20, 24, 0.28);
+  stroke: rgba(255, 255, 255, 0.85);
   stroke-width: 0.4;
-  opacity: 0.8;
+  opacity: 0.75;
   transition: transform 180ms ease, fill 180ms ease, opacity 180ms ease;
 }
 .finger-dot.active {
-  fill: #f59e0b;
+  fill: var(--accent-secondary);
   opacity: 1;
-  transform: scale(1.4);
+  transform: scale(1.45);
   transform-box: fill-box;
   transform-origin: center;
 }

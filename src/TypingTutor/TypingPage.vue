@@ -18,10 +18,13 @@
       @next-stage="onNextStage"
     />
 
+    <div v-if="currentLesson?.text" class="lesson-instructions">
+      <div class="lesson-instructions-text" v-html="currentLesson.text"></div>
+    </div>
+
     <InputArea
       :model-value="typed"
       :display-text="displayText"
-      :lesson-text="currentLesson?.text"
       @update:modelValue="typed = $event"
       @input="onInput"
       @keydown="onKeyDown"
@@ -115,8 +118,8 @@ function onNextStage() {
   /* Fluent-like tokens added locally (safe to edit component only) */
   --card-radius: 12px;
   --card-padding: 20px;
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45));
-  --card-border: rgba(16,20,24,0.04);
+  --card-bg: var(--bg-secondary);
+  --card-border: rgba(16,20,24,0.08);
 }
 
 [data-theme='dark'] {
@@ -134,6 +137,8 @@ function onNextStage() {
   --success-color: #13a538;
   --warning-color: #ffb900;
   --error-color: #f7630c;
+  --card-border: rgba(255,255,255,0.08);
+  --card-bg: var(--bg-secondary);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.4);
@@ -153,20 +158,48 @@ body {
 </style>
 
 <style scoped>
-.typing-card {
-  background: var(--card-bg, var(--bg-primary));
+.lesson-instructions {
   width: 100%;
-  height: 100%;
-  border-radius: var(--card-radius);
-  padding: var(--card-padding);
-  box-shadow: var(--shadow-lg);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 0;
+}
+
+.lesson-instructions-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 480px) {
+  .lesson-instructions {
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(16, 24, 40, 0.03);
+  }
+}
+
+.typing-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  width: 100%;
+  min-height: 100%;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-height: 0;
   flex: 1 1 auto;
   border: 1px solid var(--card-border);
-  transition: background 300ms ease, box-shadow 300ms ease, transform 180ms ease;
+  transition: background 300ms ease, box-shadow 300ms ease, transform 180ms ease, border-color 300ms ease;
 }
 
 @media (max-width: 480px) {
@@ -175,6 +208,23 @@ body {
     gap: 10px;
   }
 }
-.warning-popup { position: fixed; top:50%; left:50%; transform: translate(-50%,-50%); background:#fee2e2; color:#991b1b; border:2px solid #fca5a5; border-radius:12px; padding:20px 24px; font-size:16px; font-weight:600; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.2); z-index:1000; animation: popIn 300ms cubic-bezier(0.34,1.56,0.64,1); max-width:90% }
-@keyframes popIn { from { opacity:0; transform: translate(-50%,-50%) scale(0.8) } to { opacity:1; transform: translate(-50%,-50%) scale(1) } }
+.warning-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 242, 241, 0.96);
+  color: #991b1b;
+  border: 1px solid rgba(252, 165, 165, 0.75);
+  border-radius: 18px;
+  padding: 20px 26px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  animation: popIn 300ms cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 90%;
+}
+@keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.86) } to { opacity: 1; transform: translate(-50%, -50%) scale(1) } }
 </style>
