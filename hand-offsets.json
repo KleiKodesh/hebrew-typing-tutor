@@ -1,0 +1,21 @@
+{
+  "fingerHAdj": {
+    "left-pinky": 0.4,
+    "left-ring": 0,
+    "left-middle": 0,
+    "left-index": 0,
+    "right-index": 0,
+    "right-middle": 0,
+    "right-ring": 0,
+    "right-pinky": 0,
+    "thumb": 0
+  },
+  "rowVerticalShift": {
+    "0": 18,
+    "1": 9,
+    "2": -12.78409146326635,
+    "3": -10,
+    "4": -18
+  },
+  "timestamp": "2026-05-17T19:35:03.580Z"
+}

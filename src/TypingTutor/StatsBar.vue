@@ -63,7 +63,6 @@ const accuracyClass = computed(() => {
   font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  transition: color 200ms;
 }
 
 .stat-value.good { color: var(--success-color); }

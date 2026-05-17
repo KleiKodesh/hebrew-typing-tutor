@@ -149,7 +149,7 @@ watch(
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
-  transition: background 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 180ms ease;
+  transition: box-shadow 180ms ease;
   overflow: hidden;
 }
 

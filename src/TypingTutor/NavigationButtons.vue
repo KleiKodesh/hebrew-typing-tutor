@@ -1,11 +1,13 @@
 <template>
   <div class="button-row">
-    <div class="phase-display" v-if="phaseLabel">{{ phaseLabel }}</div>
-    <div
-      v-if="sessionSecondsDisplay"
-      class="session-timer"
-      :class="{ 'session-timer--warn': sessionWarning }"
-    >⏱ {{ sessionSecondsDisplay }}</div>
+    <div class="meta-group">
+      <div
+        v-if="sessionSecondsDisplay"
+        class="session-timer"
+        :class="{ 'session-timer--warn': sessionWarning }"
+      >⏱ {{ sessionSecondsDisplay }}</div>
+      <div class="phase-display" v-if="phaseLabel">{{ phaseLabel }}</div>
+    </div>
     <div class="button-group">
       <button
         class="nav-button stage-button"
@@ -108,7 +110,7 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   -webkit-backdrop-filter: blur(14px);
   border-radius: 12px;
   border: 1px solid var(--border-subtle);
-  transition: background 240ms ease, box-shadow 240ms ease, transform 180ms ease;
+  transition: box-shadow 240ms ease, transform 180ms ease;
 }
 
 @media (max-width: 480px) {
@@ -125,6 +127,13 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
     padding: 4px 3px;
     border-radius: 8px;
   }
+}
+
+.meta-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .phase-display {
@@ -146,7 +155,6 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   background: var(--bg-tertiary);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-  transition: color 300ms, background 300ms;
 }
 
 .session-timer--warn {
@@ -160,7 +168,6 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   color: var(--text-primary); 
   text-align: right;
   letter-spacing: -0.02em;
-  transition: color 300ms ease;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -208,7 +215,7 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   background: var(--bg-primary);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
   font-weight: 700;
   display: inline-flex;
   align-items: center;

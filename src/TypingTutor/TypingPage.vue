@@ -15,7 +15,10 @@
           לפי מחקר Baddeley &amp; Longman (1978), שיעור אחד ביום של עד 20 דקות הוא האפקטיבי ביותר.
           עצור כאן. חזור מחר.
         </div>
-        <button class="session-overlay-btn" @click="dismissExpired">אישור — אחזור מחר</button>
+        <div class="session-overlay-actions">
+          <button class="session-overlay-btn secondary" @click="dismissExpired">אישור — אחזור מחר</button>
+          <button class="session-overlay-btn primary" @click="continueAfterExpiration">המשך בכל זאת</button>
+        </div>
       </div>
     </div>
 
@@ -210,6 +213,7 @@ const {
   // other actions
   restartLesson,
   dismissExpired,
+  continueAfterExpiration,
   onInput,
   onKeyDown,
   onKeyUp,
@@ -233,7 +237,6 @@ html {
   margin: 0;
   padding: 0;
   background: var(--bg-primary);
-  transition: background 300ms ease;
 }
 
 body {
@@ -242,7 +245,6 @@ body {
   padding: 0;
   background: var(--bg-primary);
   color: var(--text-primary);
-  transition: background 300ms ease, color 300ms ease;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
   overflow: hidden;
 }
@@ -317,7 +319,6 @@ body {
   flex-direction: column;
   gap: 6px;
   overflow: hidden;
-  transition: background 300ms ease, color 300ms ease;
 }
 
 @media (max-width: 480px) { .typing-card { padding: 6px; gap: 4px; } }
@@ -405,7 +406,6 @@ body {
   font-size: clamp(9px, 1.4vw, 12px);
   font-weight: 600;
   color: var(--text-tertiary);
-  transition: background 200ms, color 200ms, border-color 200ms;
 }
 
 .zone-pip--active {
@@ -527,6 +527,13 @@ body {
   line-height: 1.55;
 }
 
+.session-overlay-actions {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
 .session-overlay-btn {
   background: var(--accent-primary);
   color: #fff;
@@ -536,11 +543,16 @@ body {
   font-size: clamp(13px, 2vw, 15px);
   font-weight: 600;
   cursor: pointer;
-  margin-top: 4px;
   transition: opacity 150ms;
 }
 
 .session-overlay-btn:hover { opacity: 0.88; }
+
+.session-overlay-btn.secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
 
 /* ── Lesson summary overlay ── */
 .summary-overlay {

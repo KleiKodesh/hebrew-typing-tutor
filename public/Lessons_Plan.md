@@ -42,13 +42,13 @@ Stages 5–6 have no zones (zone_a and zone_b are null). Stage 5 uses recall mod
 
 ---
 
-### Decision 2: ת moved to Stage 2
+### Decision 2: Stage 2 teaches six top-row letters; ת belongs to Stage 4
 
-ת is the 7th most frequent Hebrew letter (5.85%, Trost corpus). It sits on the top row above ש — the same row as Stage 2's other letters. Leaving it in Stage 4 meant learners practiced two full stages without one of the most common letters.
+Stage 2 covers the six most frequent top-row letters in keyboard-finger order: ו (L1, #3 frequency) → ר (L2, #5) → א (L3, #4) → ר+א consolidation (L4) → ו+ט consolidation (L5) → ק (L6) → ן (L7).
 
-**Current placement:** Stage 2, Lesson 4.
+**ט is the sixth top-row letter in Stage 2** (not ת). ט sits on the inner column of the top row, mورה ימין diagonal upward from י — the exact mirror of how א sits above ע on the left side. Because מורה ימין makes two distinct movements to reach the top row (straight up to ו, diagonal to ט), it requires the same consolidation lesson structure as מורה שמאל (straight up to ר, diagonal to א). This is grounded in Logan & Crump (2011): the inner loop manages fingers by movement pattern, not key identity.
 
-**Stage 2 letter order:** ו (L1, #3 frequency) → א (L2, #4) → ר (L3, #5) → ת (L4, #7) → ק (L5) → ט (L6)
+**ת belongs in Stage 4**, where it is the first new letter introduced (L1, before פ and צ). ת sits on the bottom row (אמה ימין down from ל) — it is not a top-row letter at all. Placing it in Stage 2 was an error.
 
 ---
 
@@ -157,12 +157,12 @@ After completing all zones of a lesson, the app shows a summary overlay with:
 - L7: Full mix, consolidation only
 - L8: Summary challenge with pass criterion
 
-### Stage 2 — Top Row (ו א ר ת ק ט)
+### Stage 2 — Top Row (ו ר א ק ט ן)
 - Phase: קוגניטיבי→אסוציאטיבי / translation→parsing
 - Mode: copy
-- ת moved here from Stage 4 (7th most frequent letter)
-- L1: ו, L2: א, L3: ר, L4: ת, L5: ק, L6: ט
-- L7–L8: Mixed review, all 14 letters
+- ט is the sixth top-row letter taught here (not ת — ת is a bottom-row letter belonging to Stage 4)
+- L1: ו, L2: ר, L3: א, L4: ר+א consolidation (same finger, two movements), L5: ו+ט consolidation (same finger, two movements), L6: ק, L7: ן
+- L8–L9: Mixed review and summary challenge, all 16 letters
 - All lessons: ayin_check: true
 
 ### Stage 3 — Bottom Row (ה נ ב מ ז ס)
@@ -172,15 +172,16 @@ After completing all zones of a lesson, the app shows a summary overlay with:
 - L6–L8: Mixed review, all 20 letters
 - All lessons: ayin_check: true
 
-### Stage 4 — Remaining letters + Final forms (פ צ | ך ם ן ף ץ)
+### Stage 4 — ת + remaining letters + Final forms (ת פ צ | ך ם ן ף ץ)
 - Phase: אסוציאטיבי / parsing
 - Mode: copy
-- L1: פ, L2: צ, L3: פ+צ combined
-- L4: ך and ם (base↔final pairs)
-- L5: ן alone (documented ו/ן confusion from SI-1452-2)
-- L6: ף and ץ
-- L7: All 5 finals mixed
-- L8: Summary, all 27 letters
+- L1: ת (7th most frequent; אמה ימין down from ל — bottom row, not top row)
+- L2: פ, L3: צ, L4: ת+פ+צ combined
+- L5: ך and ם (base↔final pairs)
+- L6: ן alone (documented ו/ן confusion from SI-1452-2)
+- L7: ף and ץ
+- L8: All 5 finals mixed
+- L9: Summary, all 27 letters
 - All lessons: ayin_check: true
 
 ### Stage 5 — All letters known: rhythm, punctuation, recall
@@ -261,7 +262,8 @@ Lessons are identified by `lesson_id` (preferred) with fallback to `title`. This
 | Decision | Research |
 |----------|----------|
 | Three-zone structure (only Zone A blocked) | Shea & Morgan (1979); Chalavi et al. (2018) |
-| ת in Stage 2 | Trost frequency corpus (sttmedia.com, 937,426 chars) |
+| ט in Stage 2 (ו+ט consolidation lesson) | Logan & Crump (2011) — inner loop manages movement patterns, not key identity; straight vs. diagonal from same finger are two distinct patterns |
+| ת in Stage 4 L1 | Trost frequency corpus — ת is #7 (5.85%), bottom-row letter (אמה ימין below ל); belongs with bottom-adjacent letters, not top-row Stage 2 |
 | ע ≥20% density + dedicated lessons | Rosenberg-Adler & Weintraub (2020) |
 | Alternating-hand bigrams from Stage 2 | Dhakal et al. (2018) — 136M keystroke study |
 | Stage 5 recall mode | Abecassis et al. (2025); Gahshan-Haddad & Weintraub (2023) |

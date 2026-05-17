@@ -80,7 +80,7 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease, color 180ms ease;
+  transition: transform 180ms ease, opacity 180ms ease;
   animation: fluentReveal 220ms ease both;
 }
 
@@ -92,7 +92,7 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease, color 180ms ease;
+  transition: transform 180ms ease, opacity 180ms ease;
   animation: fluentReveal 220ms ease both;
 }
 
@@ -105,7 +105,7 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease, color 180ms ease;
+  transition: transform 180ms ease, opacity 180ms ease;
   animation: fluentReveal 220ms ease both;
 }
 

@@ -434,6 +434,22 @@ export function useTyping(initialLesson: Lesson) {
     sessionExpired.value = false
   }
 
+  // Continue after expiration — reset the session timer for a new session
+  const continueAfterExpiration = () => {
+    sessionExpired.value = false
+    sessionElapsedMs.value = 0
+    saveTodayMs(0)
+    sessionWarning.value = false
+    // Reset typing state to allow fresh input
+    typed.value = ''
+    start.value = null
+    accuracy.value = 100
+    wpm.value = 0
+    progress.value = 0
+    // Restart the session timer for the new session
+    startSessionTimer()
+  }
+
   // recall mode: user signals they've read the text
   const startRecall = () => {
     recallReady.value = true
@@ -657,6 +673,7 @@ export function useTyping(initialLesson: Lesson) {
     selectLesson,
     restartLesson,
     dismissExpired,
+    continueAfterExpiration,
     clearAllProgress,
     generateWeakLesson,
   }

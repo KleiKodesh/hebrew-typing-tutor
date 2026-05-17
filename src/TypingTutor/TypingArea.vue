@@ -52,7 +52,7 @@ function onInput(e: Event) {
   direction: rtl;
   text-align: right;
   overflow: auto;
-  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease, background 180ms ease;
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .typing-area textarea:focus { box-shadow: 0 16px 38px rgba(16,24,40,0.08); border-color: rgba(0, 120, 212, 0.35); transform: translateY(-1px); background: var(--bg-primary); }
