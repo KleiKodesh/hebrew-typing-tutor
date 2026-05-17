@@ -52,6 +52,7 @@
           :can-go-next="canGoNext"
           :can-go-prev-stage="canGoPrevStage"
           :can-go-next-stage="canGoNextStage"
+          :highlight-next-stage="highlightNextStage"
           @input="onInput"
           @keydown="onKeyDown"
           @keyup="onKeyUp"
@@ -180,6 +181,10 @@ const currentCourseIndex = computed(() =>
 const canGoPrevStage = computed(() => currentCourseIndex.value > 0)
 const canGoNextStage = computed(() => currentCourseIndex.value + 1 < courses.value.length)
 
+const highlightNextStage = computed(
+  () => canGoNextStage.value && !canGoNext.value
+)
+
 function goPrevLesson() {
   if (!canGoPrev.value) {
     return
@@ -209,11 +214,11 @@ function goNextStage() {
 }
 
 function resetCourse() {
-  if (safeLessons.value.length === 0) {
+  if (courses.value.length === 0) {
     return
   }
   clearAllProgress()
-  selectLesson(safeLessons.value[0])
+  selectCourse(courses.value[0])
 }
 
 function closeMenu() {
@@ -336,6 +341,7 @@ body{
 .sidebar-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .sidebar-header h2{margin:0;font-size:16px}
 .close-menu{background:none;border:none;font-size:22px;cursor:pointer;line-height:1}
+button{border:none}
 .list{display:flex;flex-direction:column;gap:8px}
 .course,.lesson{
   padding:10px 12px;

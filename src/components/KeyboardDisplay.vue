@@ -13,7 +13,10 @@
           <span class="unshifted">{{ getUnshifted(k) }}</span>
         </div>
         <div v-else class="single-key-content">
-          {{ displayKey(k) }}
+          <svg v-if="k === 'Win'" class="win-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12.5v6.7l8.1 1.2v-7.9M10.1 3.7L2 4.9v6.7h8.1M21.9 11.5V2L11.1 3.6v8M11.1 20.5L21.9 22v-9.5H11.1"/>
+          </svg>
+          <template v-else>{{ displayKey(k) }}</template>
         </div>
       </div>
     </div>
@@ -30,20 +33,6 @@ const props = defineProps<{
 }>()
 
 // ─── Language detection ───────────────────────────────────────────────────────
-// We can't read the OS input language directly from the browser, but we can
-// infer it precisely from KeyboardEvent.key:
-//
-//   • When the OS is in Hebrew mode, pressing a letter key produces a Hebrew
-//     character (e.g. "ש") — event.key is that Hebrew char.
-//   • When in English mode, the same physical key produces "a" / "A".
-//
-// So we watch every keydown. The moment we see a printable char we know which
-// script is active and update immediately — this fires on the very first
-// character after a language toggle, with no delay.
-//
-// Modifier-only presses (Alt, Shift, Ctrl, Win, CapsLock…) are skipped since
-// they carry no script information.
-
 const hebrewRe = /[\u05b0-\u05ea\ufb1d-\ufb4e]/
 const latinRe  = /^[a-zA-Z]$/
 
@@ -53,19 +42,15 @@ const lang = ref<'en' | 'he'>(
 )
 
 function onKeyDown(e: KeyboardEvent) {
-  if (e.key.length !== 1) return   // skip modifiers, arrows, F-keys, etc.
+  if (e.key.length !== 1) return
   if (hebrewRe.test(e.key)) lang.value = 'he'
-  else if (latinRe.test(e.key))  lang.value = 'en'
-  // digits / symbols are language-neutral — don't change lang
+  else if (latinRe.test(e.key)) lang.value = 'en'
 }
 
 onMounted(()  => window.addEventListener('keydown', onKeyDown, true))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown, true))
 
 // ─── Layouts ─────────────────────────────────────────────────────────────────
-// Letter keys are single chars — no dual, no paired language.
-// Only symbol/punctuation keys that have two printed faces stay dual.
-
 const keyboardEN: string[][] = [
   ['`~', '1!', '2@', '3#', '4$', '5%', '6^', '7&', '8*', '9(', '0)', '-_', '=+', 'Backspace'],
   ['Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[{', ']}', '\\|'],
@@ -118,18 +103,18 @@ function keyClasses(key: string) {
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
 const keyUnits: Record<string, number> = {
-  Backspace: 1.5, Tab: 1.2, Caps: 1.2, Enter: 2.0,
-  Shift: 2.0, Ctrl: 1.0, Win: 1.0, Alt: 1.0, Fn: 0.9, Space: 5.5
+  Backspace: 1.5, Tab: 1.3, Caps: 1.3, Enter: 2.1,
+  Shift: 2.2, Ctrl: 1.1, Win: 1.1, Alt: 1.1, Fn: 1.0, Space: 5.5
 }
 
 function keyStyle(key: string) {
   const units = keyUnits[key] ?? 1
-  return { flex: `${units} 1 0`, minWidth: `${Math.round(16 * units)}px` }
+  // flex-grow and flex-shrink both proportional — keys scale together on any width
+  return { flex: `${units} ${units} 0`, minWidth: '0' }
 }
 
 function displayKey(key: string) {
   if (key === 'Backspace') return '⌫'
-  if (key === 'Win') return '⊞'
   return key
 }
 </script>
@@ -137,46 +122,48 @@ function displayKey(key: string) {
 <style scoped>
 .keyboard {
   margin-top: 4px;
-  background: linear-gradient(to bottom, #1a1b1e, #0f1012);
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid #2a2d32;
+  background: #e9eaf0;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #d0d2dc;
   direction: ltr;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
 }
 
 .row {
   display: flex;
   width: 100%;
-  justify-content: flex-start;
-  gap: 4px;
-  margin-bottom: 4px;
+  gap: 3px;
+  margin-bottom: 3px;
   flex-wrap: nowrap;
-  overflow-x: hidden;
 }
 
 .row:last-child { margin-bottom: 0; }
 
 .key {
-  position: relative;
-  flex: 0 0 auto;
-  min-width: 18px;
-  height: 26px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 5px;
-  background: linear-gradient(to bottom, #1e1f22, #16171a);
-  border: 1px solid #2f3338;
-  font-size: 9px;
-  font-weight: 600;
-  color: #e5e7eb;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
-  padding: 0 3px;
+  border-radius: 7px;
+  background: #ffffff;
+  border: 1px solid #c8cad4;
+  font-size: clamp(7px, 1.1vw, 11px);
+  font-weight: 500;
+  color: #2d2f3a;
+  box-shadow: 0 2px 0 #b8bac8;
+  padding: 0;
   white-space: nowrap;
-  transition: all 0.1s ease;
+  overflow: hidden;
+  transition: background 0.08s, box-shadow 0.08s;
+  cursor: default;
+  user-select: none;
+  letter-spacing: 0.01em;
 }
 
 .single-key-content {
@@ -198,34 +185,40 @@ function displayKey(key: string) {
   line-height: 1;
 }
 
-.dual-key-content .shifted  { font-size: 7px; opacity: 0.7; }
-.dual-key-content .unshifted { font-size: 8px; }
+.dual-key-content .shifted   { font-size: clamp(6px, 0.9vw, 9px); opacity: 0.55; }
+.dual-key-content .unshifted { font-size: clamp(6px, 1vw, 10px); }
 
 .key.special {
-  border-radius: 6px;
-  background: linear-gradient(to bottom, #1f2227, #17191c);
-  font-size: 10px;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+  background: #ecedf4;
+  border-color: #c0c2cc;
+  color: #4a4c5a;
+  font-weight: 500;
 }
 
 .key.held {
-  background: linear-gradient(to bottom, #1a6fff, #0f5fe2);
+  background: #3b82f6;
+  border-color: #2563eb;
   color: #ffffff;
-  border-color: rgba(15,95,226,0.6);
-  box-shadow: 0 0 12px rgba(15,95,226,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 2px 0 #1d4ed8;
 }
 
 .key.next {
-  background: linear-gradient(to bottom, #fce8b6, #f8df97);
-  color: #1f2937;
-  border-color: #f59e0b;
-  box-shadow: 0 0 12px rgba(245,158,11,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+  background: #fef9c3;
+  border-color: #fbbf24;
+  color: #92400e;
+  box-shadow: 0 2px 0 #f59e0b;
 }
 
 .key.mistake {
-  background: linear-gradient(to bottom, #fecaca, #fee2e2);
+  background: #fee2e2;
+  border-color: #fca5a5;
   color: #991b1b;
-  border-color: #ef4444;
-  box-shadow: 0 0 12px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 2px 0 #ef4444;
+}
+
+.win-icon {
+  width: clamp(8px, 1.2vw, 12px);
+  height: clamp(8px, 1.2vw, 12px);
+  display: block;
 }
 </style>
