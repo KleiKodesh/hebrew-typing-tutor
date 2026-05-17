@@ -121,16 +121,25 @@ function displayKey(key: string) {
 
 <style scoped>
 .keyboard {
-  margin-top: 4px;
-  background: #e9eaf0;
+  margin: 4px auto 0 auto;
+  background: var(--bg-secondary);
   padding: 6px;
   border-radius: 8px;
-  border: 1px solid #d0d2dc;
+  border: 1px solid var(--border-color);
   direction: ltr;
   width: 100%;
+  max-width: 500px;
   box-sizing: border-box;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+@media (max-width: 480px) {
+  .keyboard {
+    padding: 4px;
+    max-width: 100%;
+  }
 }
 
 .row {
@@ -139,6 +148,13 @@ function displayKey(key: string) {
   gap: 3px;
   margin-bottom: 3px;
   flex-wrap: nowrap;
+}
+
+@media (max-width: 480px) {
+  .row {
+    gap: 2px;
+    margin-bottom: 2px;
+  }
 }
 
 .row:last-child { margin-bottom: 0; }
@@ -151,19 +167,28 @@ function displayKey(key: string) {
   align-items: center;
   justify-content: center;
   border-radius: 7px;
-  background: #ffffff;
-  border: 1px solid #c8cad4;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   font-size: clamp(7px, 1.1vw, 11px);
   font-weight: 500;
-  color: #2d2f3a;
-  box-shadow: 0 2px 0 #b8bac8;
+  color: var(--text-primary);
+  box-shadow: 0 2px 0 var(--border-color);
   padding: 0;
   white-space: nowrap;
   overflow: hidden;
-  transition: background 0.08s, box-shadow 0.08s;
+  transition: background 0.08s, box-shadow 0.08s, color 0.08s;
   cursor: default;
   user-select: none;
   letter-spacing: 0.01em;
+}
+
+@media (max-width: 480px) {
+  .key {
+    height: 16px;
+    border-radius: 5px;
+    font-size: clamp(6px, 1vw, 9px);
+    box-shadow: 0 1px 0 var(--border-color);
+  }
 }
 
 .single-key-content {
@@ -188,11 +213,22 @@ function displayKey(key: string) {
 .dual-key-content .shifted   { font-size: clamp(6px, 0.9vw, 9px); opacity: 0.55; }
 .dual-key-content .unshifted { font-size: clamp(6px, 1vw, 10px); }
 
+@media (max-width: 480px) {
+  .dual-key-content .shifted   { font-size: clamp(5px, 0.8vw, 7px); }
+  .dual-key-content .unshifted { font-size: clamp(5px, 0.9vw, 8px); }
+}
+
 .key.special {
   background: #ecedf4;
   border-color: #c0c2cc;
   color: #4a4c5a;
   font-weight: 500;
+}
+
+[data-theme='dark'] .key.special {
+  background: #404060;
+  border-color: #505080;
+  color: #b0b0d0;
 }
 
 .key.held {
@@ -208,6 +244,7 @@ function displayKey(key: string) {
   color: #92400e;
   box-shadow: 0 2px 0 #f59e0b;
 }
+
 
 .key.mistake {
   background: #fee2e2;

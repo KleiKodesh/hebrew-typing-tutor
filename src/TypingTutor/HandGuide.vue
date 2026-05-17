@@ -191,6 +191,14 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
   padding: 6px 0 0;
   direction: ltr;
 }
+
+@media (max-width: 480px) {
+  .hand-guide {
+    gap: 12px;
+    padding: 4px 0 0;
+  }
+}
+
 .hand-icon {
   width: 56px;
   min-width: 56px;
@@ -199,17 +207,26 @@ const hands: { side: HandSide; transform: string; markers: { id: string; cx: num
   align-items: center;
   justify-content: center;
 }
+
+@media (max-width: 480px) {
+  .hand-icon {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+}
 .hand-icon svg {
   width: 100%;
   height: auto;
 }
 .hand-base {
-  fill: #334155;
+  fill: var(--text-secondary);
   opacity: 0.18;
+  transition: fill 200ms ease;
 }
 .finger-dot {
-  fill: #cbd5e1;
-  stroke: #ffffff;
+  fill: var(--border-color);
+  stroke: var(--bg-primary);
   stroke-width: 0.4;
   opacity: 0.8;
   transition: transform 180ms ease, fill 180ms ease, opacity 180ms ease;

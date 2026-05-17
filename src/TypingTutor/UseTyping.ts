@@ -1,7 +1,15 @@
 export interface Lesson {
+  lesson_id?: string
   title: string
   text: string
   exercise?: string
+}
+
+export interface Stage {
+  stage_id: string
+  stage_title: string
+  description: string
+  lessons: Lesson[]
 }
 
 import { ref, computed, onMounted } from 'vue'
@@ -23,6 +31,8 @@ export function useTyping(initialLesson: Lesson) {
   const lessonProgress = ref<Record<string, string>>({})
   const weak = ref<Record<string, number>>({})
   const currentLesson = ref<Lesson>(initialLesson)
+  const currentStage = ref<Stage | null>(null)
+  const allStages = ref<Stage[]>([])
 
   const nextKey = computed(() => {
     const target = getTarget(currentLesson.value)
@@ -206,7 +216,33 @@ export function useTyping(initialLesson: Lesson) {
     resetTyping()
   }
 
-  onMounted(() => {
+  onMounted(async () => {
+    // Load stage data
+    const stageNumbers = [1, 2, 3, 4, 5, 6]
+    try {
+      for (const num of stageNumbers) {
+        const response = await fetch(`/stage_${num}.json`)
+        if (response.ok) {
+          const stage: Stage = await response.json()
+          allStages.value.push(stage)
+          if (currentLesson.value && currentLesson.value.title && !currentStage.value) {
+            // Try to find if current lesson matches this stage
+            const lesson = stage.lessons.find((l) => l.title === currentLesson.value.title)
+            if (lesson) {
+              currentStage.value = stage
+            }
+          }
+        }
+      }
+      // If no current lesson is set, use first lesson from first stage
+      if (allStages.value.length > 0 && (!currentLesson.value || !currentLesson.value.title)) {
+        currentStage.value = allStages.value[0]
+        currentLesson.value = allStages.value[0].lessons[0]
+      }
+    } catch (error) {
+      console.error('Failed to load stages:', error)
+    }
+
     const savedWeak = localStorage.getItem('weak')
     if (savedWeak) {
       weak.value = JSON.parse(savedWeak)
@@ -230,6 +266,8 @@ export function useTyping(initialLesson: Lesson) {
     englishWarning,
     isComplete,
     currentLesson,
+    currentStage,
+    allStages,
     displayText,
     onInput,
     onKeyDown,

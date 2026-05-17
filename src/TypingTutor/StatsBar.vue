@@ -25,12 +25,12 @@ const props = defineProps<{
 <style scoped>
 .stats-bar {
   display: flex;
-  gap: 10px;
-  padding: 6px 10px;
-  background: #ffffff;
+  gap: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.55));
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(16,24,40,0.05);
-  border: 1px solid rgba(16,24,40,0.04);
+  box-shadow: 0 10px 30px rgba(16,24,40,0.06);
+  border: 1px solid var(--border-subtle);
   align-items: center;
   justify-content: space-between;
   width: 100%;
@@ -39,13 +39,13 @@ const props = defineProps<{
 .label {
   display: block;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-tertiary);
 }
 .value {
   display: block;
-  font-size: 14px;
-  font-weight: 700;
-  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 @media (max-width: 520px) {
   .stats-bar { gap: 8px; padding: 8px }
