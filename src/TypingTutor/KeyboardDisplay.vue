@@ -22,7 +22,7 @@
         </div>
       </div>
 
-      <!-- ── Hand overlays — both always shown; active hand moves to target key ── -->
+      <!-- Both hands always rendered; active hand moves to the target key -->
       <div
         v-for="hand in handOverlays"
         :key="hand.side"
@@ -43,17 +43,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import {
+  KEYBOARD_HE,
+  KEY_UNITS,
+  FINGER_MAP,
+  KEY_ROW_HE,
+  HAND_W,
+  computeHandPos,
+} from './HebrewKeyboard'
 
 const props = defineProps<{
-  heldKey: string
-  nextKey: string
-  mistakeKey: string
-  prevKey?: string
+  heldKey:     string
+  nextKey:     string
+  mistakeKey:  string
+  prevKey?:    string
   unconstrained?: boolean
 }>()
 
-// ─── Language detection ───────────────────────────────────────────────────────
+// ── Language detection ────────────────────────────────────────────────────────
 const hebrewRe = /[\u05b0-\u05ea\ufb1d-\ufb4e]/
 const latinRe  = /^[a-zA-Z]$/
 
@@ -61,38 +69,30 @@ const lang = ref<'en' | 'he'>('he')
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key.length !== 1) return
-  if (hebrewRe.test(e.key)) lang.value = 'he'
-  else if (latinRe.test(e.key)) lang.value = 'en'
+  if (hebrewRe.test(e.key))      lang.value = 'he'
+  else if (latinRe.test(e.key))  lang.value = 'en'
 }
 
 onMounted(()  => window.addEventListener('keydown', onKeyDown, true))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown, true))
 
-// ─── Layouts ─────────────────────────────────────────────────────────────────
-const keyboardEN: string[][] = [
+// ── Layouts ───────────────────────────────────────────────────────────────────
+const KEYBOARD_EN: string[][] = [
   ['`~', '1!', '2@', '3#', '4$', '5%', '6^', '7&', '8*', '9(', '0)', '-_', '=+', 'Backspace'],
   ['Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[{', ']}', '\\|'],
   ['Caps', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';:', '\'"', 'Enter'],
   ['LShift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',<', '.>', '/?', 'Shift'],
-  ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl']
-]
-
-const keyboardHE: string[][] = [
-  ['`~', '1!', '2@', '3#', '4$', '5%', '6^', '7&', '8*', '9(', '0)', '-_', '=+', 'Backspace'],
-  ['Tab', '/', '\'', 'ק', 'ר', 'א', 'ט', 'ו', 'ן', 'ם', 'פ', '[{', ']}', '\\|'],
-  ['Caps', 'ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', 'ף:', '\'״', 'Enter'],
-  ['LShift', 'ז', 'ס', 'ב', 'ה', 'נ', 'מ', 'צ', 'ת', 'ץ', '/?', 'Shift'],
-  ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl']
+  ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl'],
 ]
 
 const activeKeyboard = computed(() =>
-  lang.value === 'he' ? keyboardHE : keyboardEN
+  lang.value === 'he' ? KEYBOARD_HE : KEYBOARD_EN
 )
 
-// ─── Dual-key detection ───────────────────────────────────────────────────────
+// ── Dual-key detection ────────────────────────────────────────────────────────
 const dualSecondChars = new Set([
   '~','!','@','#','$','%','^','&','*','(',')',
-  '_','+','{','}','|','"','<','>','?','\\',':','״'
+  '_','+','{','}','|','"','<','>','?','\\',':','״',
 ])
 
 function isDualKey(key: string): boolean {
@@ -102,14 +102,15 @@ function isDualKey(key: string): boolean {
 function getShifted(key: string)   { return key.charAt(1) }
 function getUnshifted(key: string) { return key.charAt(0) }
 
-// ─── Highlight logic ──────────────────────────────────────────────────────────
+// ── Highlight logic ───────────────────────────────────────────────────────────
 const wideKeys = new Set(['Backspace','Tab','Caps','Enter','LShift','Shift','Ctrl','Win','Alt','Fn','Space'])
 
 function normalizeKey(key: string) {
-  if (key === ' ') return 'Space'
+  if (key === ' ')      return 'Space'
   if (key === 'LShift') return 'Shift'
   return key
 }
+
 function keyMatches(key: string, value: string) {
   return normalizeKey(value) === normalizeKey(key)
 }
@@ -119,65 +120,37 @@ function keyClasses(key: string) {
     held:    keyMatches(key, props.heldKey),
     next:    keyMatches(key, props.nextKey),
     mistake: keyMatches(key, props.mistakeKey),
-    special: wideKeys.has(key) || (key.length > 1 && !isDualKey(key))
+    special: wideKeys.has(key) || (key.length > 1 && !isDualKey(key)),
   }
 }
 
-// ─── Sizing ───────────────────────────────────────────────────────────────────
-const keyUnits: Record<string, number> = {
-  Backspace: 1.5, Tab: 1.5, Caps: 1.7, Enter: 2.1,
-  LShift: 1.9, Shift: 2.4, Ctrl: 1.1, Win: 1.1, Alt: 1.1, Fn: 1.0, Space: 5.5
-}
-
 function keyStyle(key: string) {
-  const units = keyUnits[key] ?? 1
+  const units = KEY_UNITS[key] ?? 1
   return { flex: `${units} ${units} 0` }
 }
 
 function displayKey(key: string) {
   if (key === 'Backspace') return '⌫'
-  if (key === 'LShift') return 'Shift'
+  if (key === 'LShift')    return 'Shift'
   return key
 }
 
-// ─── Hand overlay — fully dynamic ────────────────────────────────────────────
-//
-// Finger tip positions in SVG viewBox (0–32), right hand unmirrored.
-// Left hand mirrors X: leftX = 32 - rightX
-const HAND_W = 0.28
-
-const FINGER_TIP: Record<string, { x: number; y: number }> = {
-  'right-pinky':  { x: 29.5, y: 8.7  },
-  'right-ring':   { x: 22.2, y: 3.4  },
-  'right-middle': { x: 14.5, y: 2.6  },
-  'right-index':  { x: 6.9,  y: 7.7  },
-  'right-thumb':  { x: 2.9,  y: 26.8 },
-  'left-pinky':   { x: 32 - 29.5, y: 8.7  },
-  'left-ring':    { x: 32 - 22.2, y: 3.4  },
-  'left-middle':  { x: 32 - 14.5, y: 2.6  },
-  'left-index':   { x: 32 - 6.9,  y: 7.7  },
-  'left-thumb':   { x: 32 - 2.9,  y: 26.8 },
-}
-
-// DOM refs
+// ── Sizing ────────────────────────────────────────────────────────────────────
 const wrapEl     = ref<HTMLElement>()
 const keyboardEl = ref<HTMLElement>()
-const kbWidth  = ref(0)
-const kbHeight = ref(0)
+const kbWidth    = ref(0)
+const kbHeight   = ref(0)
 const kbMaxWidth = ref<string>('100%')
-const ASPECT = 3.2
+
+const ASPECT          = 3.2
 const MAX_HEIGHT_FRAC = 0.28
 
 function measureConstraints() {
-  if (props.unconstrained) {
-    kbMaxWidth.value = '100%'
-    return
-  }
+  if (props.unconstrained) { kbMaxWidth.value = '100%'; return }
   if (!wrapEl.value) return
   const parent = wrapEl.value.parentElement
   if (!parent) return
-  const parentH = parent.getBoundingClientRect().height
-  const maxW = parentH * MAX_HEIGHT_FRAC * ASPECT
+  const maxW = parent.getBoundingClientRect().height * MAX_HEIGHT_FRAC * ASPECT
   kbMaxWidth.value = `${maxW}px`
 }
 
@@ -192,144 +165,14 @@ let ro: ResizeObserver | null = null
 onMounted(() => {
   measureConstraints()
   measureKeyboard()
-  ro = new ResizeObserver(() => {
-    measureConstraints()
-    measureKeyboard()
-  })
+  ro = new ResizeObserver(() => { measureConstraints(); measureKeyboard() })
   if (wrapEl.value?.parentElement) ro.observe(wrapEl.value.parentElement)
-  if (keyboardEl.value) ro.observe(keyboardEl.value)
+  if (keyboardEl.value)            ro.observe(keyboardEl.value)
 })
 onUnmounted(() => ro?.disconnect())
 
-// Compute key center X as fraction of keyboard width (same flex-unit math as before)
-function keyCenterFrac(row: string[], targetKey: string): number {
-  const units = row.map(k => keyUnits[k] ?? 1)
-  const total = units.reduce((a, b) => a + b, 0)
-  let acc = 0
-  for (let i = 0; i < row.length; i++) {
-    const u = units[i]
-    const k = row[i]
-    if (k === targetKey || k.includes(targetKey)) {
-      return (acc + u / 2) / total
-    }
-    acc += u
-  }
-  return 0.5
-}
-
-// Row Y centers as fraction of keyboard height.
-// The keyboard has 5 rows of equal height (gap is small, treat as uniform).
-// Row index 0=number, 1=top, 2=home, 3=bottom, 4=space
-// With 5 rows: center of row i = (i + 0.5) / 5
-function rowCenterFrac(row: number): number {
-  return (row + 0.5) / 5
-}
-
-const fingerHomeKey: Record<string, string> = {
-  'left-pinky': 'ש', 'left-ring': 'ד', 'left-middle': 'ג', 'left-index': 'כ',
-  'right-index': 'י', 'right-middle': 'ל', 'right-ring': 'ך', 'right-pinky': 'ף',
-  'thumb': 'Space',
-}
-const fingerHomeKeyEN: Record<string, string> = {
-  'left-pinky': 'a', 'left-ring': 's', 'left-middle': 'd', 'left-index': 'f',
-  'right-index': 'j', 'right-middle': 'k', 'right-ring': 'l', 'right-pinky': ';:',
-  'thumb': 'Space',
-}
-
-const homeRowHE = ['Caps', 'ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', 'ף:', '\'״', 'Enter']
-const homeRowEN = ['Caps', 'a',  's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';:', '\'"',  'Enter']
-const spaceRow  = ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl']
-
-function fingerColumnFrac(fingerId: string, key: string, isHebrew: boolean): number {
-  if (fingerId === 'thumb' || fingerId === 'left-thumb' || fingerId === 'right-thumb') {
-    return keyCenterFrac(spaceRow, 'Space')
-  }
-  // Look up the actual key's column in its keyboard row first
-  const rowMap = isHebrew ? keyRowHE : keyRowEN
-  const rowIdx = rowMap[key] ?? 2
-  const keyboard = isHebrew ? keyboardHE : keyboardEN
-  const keyboardRow = keyboard[rowIdx]
-  if (keyboardRow) {
-    const frac = keyCenterFrac(keyboardRow, key)
-    if (frac !== 0.5) return frac
-  }
-  // Fallback: home key position
-  const homeRow = isHebrew ? homeRowHE : homeRowEN
-  const homeKey = isHebrew ? (fingerHomeKey[fingerId] ?? 'ף') : (fingerHomeKeyEN[fingerId] ?? ';:')
-  return keyCenterFrac(homeRow, homeKey)
-}
-
-function computeHandPos(fingerId: string, key: string, row: number, isHebrew: boolean): { leftPct: number; topPct: number } {
-  const kbW = kbWidth.value
-  const kbH = kbHeight.value
-  const handPx = kbW * HAND_W
-  const tip = FINGER_TIP[fingerId] ?? { x: 16, y: 8 }
-  const tipXpx = (tip.x / 32) * handPx
-  const tipYpx = (tip.y / 32) * handPx
-  const targetXpx = fingerColumnFrac(fingerId, key, isHebrew) * kbW
-  const targetYpx = rowCenterFrac(row) * kbH
-  let leftPct = ((targetXpx - tipXpx) / kbW) * 100
-  let topPct  = ((targetYpx - tipYpx) / kbH) * 100
-
-  // Apply per-side thumb correction from calibration data
-  if (fingerId === 'left-thumb') {
-    // Absolute calibrated position — overrides the geometry calculation entirely
-    return { leftPct: 18.89356060606061, topPct: 10.80415584415583 }
-  } else if (fingerId === 'right-thumb') {
-    return { leftPct: 53.50687229437229, topPct: 14.267359307359285 }
-  } else if (fingerId === 'thumb') {
-    // legacy fallback
-    leftPct += 12.368421052631575
-    topPct  += -54.736842105263165
-  }
-
-  return { leftPct, topPct }
-}
-
-// Finger map: key → finger id
-// TODO: Add English layout support later (a-z, punctuation mappings)
-const fingerMap: Record<string, string> = {
-  '`': 'left-pinky', '~': 'left-pinky',
-  '1': 'left-pinky', '!': 'left-pinky',
-  '2': 'left-ring',  '@': 'left-ring',
-  '3': 'left-middle','#': 'left-middle',
-  '4': 'left-index', '$': 'left-index',
-  '5': 'left-index', '%': 'left-index',
-  '6': 'right-index','^': 'right-index',
-  '7': 'right-index','&': 'right-index',
-  '8': 'right-middle','*': 'right-middle',
-  '9': 'right-ring', '(': 'right-ring',
-  '0': 'right-pinky',')': 'right-pinky',
-  '-': 'right-pinky','_': 'right-pinky',
-  '=': 'right-pinky','+': 'right-pinky',
-  'ק': 'left-middle','ר': 'left-index',
-  'א': 'left-index', 'ט': 'right-index', 'ו': 'right-index',
-  'ן': 'right-middle','ם': 'right-ring',
-  'פ': 'right-pinky',
-  'ש': 'left-pinky', 'ד': 'left-ring',
-  'ג': 'left-middle','כ': 'left-index',
-  'ע': 'left-index', 'י': 'right-index',
-  'ח': 'right-index','ל': 'right-middle',
-  'ך': 'right-ring', 'ף': 'right-pinky',
-  'ז': 'left-pinky', 'ס': 'left-ring',
-  'ב': 'left-middle','ה': 'left-index',
-  'נ': 'left-index', 'מ': 'right-index',
-  'צ': 'right-index','ת': 'right-middle',
-  'ץ': 'right-ring',
-  '[': 'right-pinky',']': 'right-pinky',
-  '\\': 'right-pinky','|': 'right-pinky',
-  ' ': 'thumb',
-}
-
-const keyRowHE: Record<string, number> = {
-  '`':0,'~':0,'1':0,'!':0,'2':0,'@':0,'3':0,'#':0,'4':0,'$':0,'5':0,'%':0,
-  '6':0,'^':0,'7':0,'&':0,'8':0,'*':0,'9':0,'(':0,'0':0,')':0,'-':0,'_':0,'=':0,'+':0,
-  '/':1,"'":1,'ק':1,'ר':1,'א':1,'ט':1,'ו':1,'ן':1,'ם':1,'פ':1,']':1,'[':1,'\\':1,
-  'ש':2,'ד':2,'ג':2,'כ':2,'ע':2,'י':2,'ח':2,'ל':2,'ך':2,'ף':2,
-  'ז':3,'ס':3,'ב':3,'ה':3,'נ':3,'מ':3,'צ':3,'ת':3,'ץ':3,'.':3,',':3,
-  ' ':4,
-}
-const keyRowEN: Record<string, number> = {
+// ── English row map (for EN hand positioning) ─────────────────────────────────
+const KEY_ROW_EN: Record<string, number> = {
   '`':0,'~':0,'1':0,'!':0,'2':0,'@':0,'3':0,'#':0,'4':0,'$':0,'5':0,'%':0,
   '6':0,'^':0,'7':0,'&':0,'8':0,'*':0,'9':0,'(':0,'0':0,')':0,'-':0,'_':0,'=':0,'+':0,
   'q':1,'w':1,'e':1,'r':1,'t':1,'y':1,'u':1,'i':1,'o':1,'p':1,'[':1,']':1,'\\':1,
@@ -338,7 +181,7 @@ const keyRowEN: Record<string, number> = {
   ' ':4,
 }
 
-// Home-row resting positions for each hand (index finger on home key)
+// Home-row index finger keys per side and language
 const HOME_KEY: Record<'left' | 'right', { he: string; en: string }> = {
   left:  { he: 'כ', en: 'f' },
   right: { he: 'ח', en: 'j' },
@@ -347,28 +190,26 @@ const HOME_KEY: Record<'left' | 'right', { he: string; en: string }> = {
 function handRestPos(side: 'left' | 'right', isHebrew: boolean): { leftPct: number; topPct: number } {
   const fingerId = `${side}-index` as const
   const homeKey  = isHebrew ? HOME_KEY[side].he : HOME_KEY[side].en
-  const rowMap   = isHebrew ? keyRowHE : keyRowEN
+  const rowMap   = isHebrew ? KEY_ROW_HE : KEY_ROW_EN
   const row      = rowMap[homeKey] ?? 2
-  return computeHandPos(fingerId, homeKey, row, isHebrew)
+  return computeHandPos(fingerId, homeKey, row, kbWidth.value, kbHeight.value)
 }
 
+// ── Hand overlays ─────────────────────────────────────────────────────────────
 const handOverlays = computed(() => {
   if (!kbWidth.value || !kbHeight.value) return []
 
   const key      = props.nextKey
   const isHebrew = lang.value === 'he'
-  const rowMap   = isHebrew ? keyRowHE : keyRowEN
+  const rowMap   = isHebrew ? KEY_ROW_HE : KEY_ROW_EN
 
-  // For space: use the thumb opposite to the hand that typed the previous key.
-  // Falls back to right thumb if no previous key is known.
   function resolveFingerForKey(k: string): string {
     if (k === ' ') {
-      const prevFinger = props.prevKey ? fingerMap[props.prevKey] : null
+      const prevFinger = props.prevKey ? FINGER_MAP[props.prevKey] : null
       const prevSide   = prevFinger?.startsWith('left') ? 'left' : 'right'
-      // opposite thumb
       return prevSide === 'left' ? 'right-thumb' : 'left-thumb'
     }
-    return fingerMap[k] ?? ''
+    return FINGER_MAP[k] ?? ''
   }
 
   const activeFinger = key ? resolveFingerForKey(key) : null
@@ -384,7 +225,7 @@ const handOverlays = computed(() => {
     if (isActive && key) {
       const fingerId = activeFinger!
       const row = rowMap[key] ?? 2
-      ;({ leftPct, topPct } = computeHandPos(fingerId, key, row, isHebrew))
+      ;({ leftPct, topPct } = computeHandPos(fingerId, key, row, kbWidth.value, kbHeight.value))
     } else {
       ;({ leftPct, topPct } = handRestPos(side, isHebrew))
     }
@@ -407,7 +248,7 @@ const handOverlays = computed(() => {
 <style scoped>
 .keyboard-wrap {
   width: 100%;
-  margin: 2px auto 0 auto;
+  margin: 2px auto 0;
   flex-shrink: 0;
   display: flex;
   justify-content: center;
@@ -422,7 +263,6 @@ const handOverlays = computed(() => {
   border: 1px solid var(--border-subtle);
   direction: ltr;
   width: 100%;
-  /* ~3.2:1 keyboard aspect ratio — height grows/shrinks with width */
   aspect-ratio: 3.2 / 1;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
@@ -441,8 +281,6 @@ const handOverlays = computed(() => {
   min-height: 0;
 }
 
-.row:last-child { margin-bottom: 0; }
-
 .key {
   flex: 1 1 0;
   min-width: 0;
@@ -458,7 +296,6 @@ const handOverlays = computed(() => {
   font-size: clamp(7px, 1.6vw, 9px);
   font-weight: 500;
   color: var(--text-primary);
-  box-shadow: none;
   padding: 0 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -473,11 +310,6 @@ const handOverlays = computed(() => {
   background: rgba(236, 237, 244, 0.12);
   border-color: rgba(192, 194, 204, 0.18);
 }
-
-.row .key {
-  margin-right: 2px;
-}
-
 
 .single-key-content {
   display: flex;
@@ -518,7 +350,6 @@ const handOverlays = computed(() => {
   background: #eff6ff;
   border-color: #bfdbfe;
   color: #1e3a8a;
-  box-shadow: none;
 }
 
 .key.next {
@@ -547,7 +378,6 @@ const handOverlays = computed(() => {
   background: #fdf2f2;
   border-color: #fecaca;
   color: #991b1b;
-  box-shadow: none;
 }
 
 .win-icon {
@@ -564,9 +394,7 @@ const handOverlays = computed(() => {
   z-index: 10;
 }
 
-.hand-overlay.idle {
-  opacity: 0.25;
-}
+.hand-overlay.idle { opacity: 0.25; }
 
 .hand-svg {
   width: 100%;

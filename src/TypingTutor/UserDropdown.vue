@@ -157,14 +157,6 @@ function confirmDelete() {
   }
 }
 
-function openNewUserInput() {
-  // removed
-}
-
-function cancelNewUser() {
-  // removed
-}
-
 function submitNewUser() {
   close()
   emit('new-user')

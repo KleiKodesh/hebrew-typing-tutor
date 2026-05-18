@@ -46,28 +46,27 @@
     </div>
 
     <!-- Delete confirmation dialog -->
-    <transition name="dialog">
-      <div v-if="deleteConfirmUser" class="delete-backdrop" @click.self="deleteConfirmUser = null">
-        <div class="delete-dialog">
-          <div class="delete-message">
-            <span>האם אתה בטוח שברצונך למחוק את </span>
-            <span class="delete-name">{{ deleteConfirmUser }}</span>
-            <span>?</span>
-          </div>
-          <div class="delete-warning">כל הנתונים שלו יימחקו.</div>
-          <div class="delete-actions">
-            <button class="delete-btn cancel" @click="deleteConfirmUser = null">ביטול</button>
-            <button class="delete-btn confirm" @click="confirmDelete">מחק</button>
-          </div>
-        </div>
-      </div>
-    </transition>
+    <ConfirmDialog
+      :is-open="!!deleteConfirmUser"
+      cancel-label="ביטול"
+      confirm-label="מחק"
+      @confirm="confirmDelete"
+      @cancel="deleteConfirmUser = null"
+    >
+      <template #message>
+        <span>האם אתה בטוח שברצונך למחוק את </span>
+        <span class="delete-name">{{ deleteConfirmUser }}</span>
+        <span>?</span>
+      </template>
+      <template #warning>כל הנתונים שלו יימחקו.</template>
+    </ConfirmDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useUserProfile } from '../composables/useUserProfile'
+import ConfirmDialog from '../TypingTutor/ConfirmDialog.vue'
 
 const emit = defineEmits<{
   select: [name: string]
@@ -286,96 +285,8 @@ function confirmDelete() {
 }
 
 /* Delete confirmation dialog */
-.delete-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.delete-dialog {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 20px 24px;
-  max-width: 300px;
-  width: 90%;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  animation: dialogIn 200ms cubic-bezier(0.1, 0.9, 0.2, 1);
-}
-
-@keyframes dialogIn {
-  from { opacity: 0; transform: scale(0.95) translateY(-8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.delete-message {
-  font-size: 14px;
-  color: var(--text-primary);
-  line-height: 1.6;
-  text-align: right;
-}
-
 .delete-name {
   font-weight: 700;
   color: var(--text-primary);
-}
-
-.delete-warning {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
-  text-align: right;
-}
-
-.delete-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 4px;
-}
-
-.delete-btn {
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  transition: opacity 140ms;
-}
-
-.delete-btn.cancel {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
-
-.delete-btn.cancel:hover { opacity: 0.8; }
-
-.delete-btn.confirm {
-  background: var(--error-color);
-  color: #fff;
-}
-
-.delete-btn.confirm:hover { opacity: 0.88; }
-
-/* Transition */
-.dialog-enter-active,
-.dialog-leave-active {
-  transition: opacity 200ms ease;
-}
-.dialog-enter-from,
-.dialog-leave-to {
-  opacity: 0;
 }
 </style>

@@ -151,9 +151,6 @@
       :ayin-accuracy="currentLesson?.ayin_check ? ayinAccuracy : null"
     />
 
-    <!-- ── Hand guide ── -->
-    <HandGuide :next-key="nextKey" />
-
     <!-- ── Keyboard display ── -->
     <KeyboardDisplay
       :last-key="lastKey"
@@ -183,11 +180,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from './KeyboardDisplay.vue'
-import HandGuide from './HandGuide.vue'
 import StatsBar from './StatsBar.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import { useTyping, getZoneName } from './UseTyping'
@@ -317,99 +313,19 @@ const complimentMessages = [
   'כל הכבוד',
   'עבודה מצוינת',
   'מדהים',
-  'Ỹ של עבודה',
   'ממשיכים קדימה',
   'מושלם',
 ]
 
-const summaryTitle = computed(() => {
+// Resolved once per lesson completion, not on every reactive read
+const summaryTitle = ref('✓ שיעור הושלם')
+
+watch(showSummary, (visible) => {
+  if (!visible) return
   const base = complimentMessages[Math.floor(Math.random() * complimentMessages.length)]
-  return userName.value ? `${base}, ${userName.value}! ✓` : `✓ שיעור הושלם`
+  summaryTitle.value = userName.value ? `${base}, ${userName.value}! ✓` : '✓ שיעור הושלם'
 })
 </script>
-
-<style>
-*,
-*::before,
-*::after { box-sizing: border-box; }
-
-html {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background: var(--bg-primary);
-}
-
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-  overflow: hidden;
-}
-
-#app {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-html, body {
-  direction: rtl;
-}
-
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f3f3f7;
-  --bg-tertiary: #ececf1;
-  --text-primary: #201f1e;
-  --text-secondary: #3b3b3b;
-  --text-tertiary: #797775;
-  --border-color: #d0d0d0;
-  --border-subtle: #e1dfdd;
-  --accent-primary: #0078d4;
-  --accent-secondary: #50e6ff;
-  --success-color: #107c10;
-  --warning-color: #d97706;
-  --error-color: #e81b23;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
-  --shadow-lg: 0 12px 28px rgba(0,0,0,0.12);
-  --card-bg: var(--bg-secondary);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.2) transparent;
-}
-
-[data-theme='dark'] {
-  --bg-primary: #1f1f1f;
-  --bg-secondary: #2d2d2d;
-  --bg-tertiary: #3e3e3e;
-  --text-primary: #f8f8f8;
-  --text-secondary: #cccccc;
-  --text-tertiary: #a0a0a0;
-  --border-color: #464647;
-  --border-subtle: #3f3f3f;
-  --accent-primary: #0078d4;
-  --accent-secondary: #50e6ff;
-  --success-color: #13a538;
-  --warning-color: #f59e0b;
-  --error-color: #f7630c;
-  --card-bg: var(--bg-secondary);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 8px rgba(0,0,0,0.3);
-  --shadow-lg: 0 12px 28px rgba(0,0,0,0.4);
-  scrollbar-color: rgba(255,255,255,0.2) transparent;
-}
-
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
-[data-theme='dark'] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); }
-[data-theme='dark'] ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
-</style>
 
 <style scoped>
 /* ── Shell ── */

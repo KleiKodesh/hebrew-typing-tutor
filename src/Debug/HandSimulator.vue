@@ -1,7 +1,7 @@
 <template>
   <div class="simulator">
 
-    <!-- ── Top: controls ── -->
+    <!-- ── Controls (top, scrollable) ── -->
     <div class="controls">
       <div class="controls-inner">
         <h3>Hand Simulator</h3>
@@ -24,7 +24,6 @@
           <span>Δv: <strong>{{ deltaV.toFixed(2) }}%</strong></span>
         </div>
 
-        <!-- Space: show deltas for both thumbs -->
         <div class="offset-box" v-if="currentKey === ' '">
           <span>Left Δh: <strong>{{ spaceLeftDeltaH.toFixed(2) }}%</strong></span>
           <span>Left Δv: <strong>{{ spaceLeftDeltaV.toFixed(2) }}%</strong></span>
@@ -51,7 +50,7 @@
       </div>
     </div>
 
-    <!-- ── Bottom: keyboard with hand overlay ── -->
+    <!-- ── Keyboard with hand overlay ── -->
     <div class="keyboard-area">
       <div
         class="keyboard-wrapper"
@@ -72,50 +71,51 @@
         <!-- Overlay container — positioned to exactly cover the .keyboard element -->
         <div class="overlay-container" ref="overlayContainer">
 
-        <!-- Single hand for normal keys -->
-        <div
-          v-if="currentKey && currentKey !== ' ' && currentFinger"
-          class="hand-overlay"
-          :style="handStyle"
-          @mousedown="startDrag('single', $event)"
-          @touchstart.prevent="startDrag('single', $event)"
-        >
-          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
-            <path
-              class="hand-base"
-              :transform="handSide === 'left' ? 'scale(-1,1) translate(-32,0)' : undefined"
-              d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
-            />
-          </svg>
-        </div>
+          <!-- Single hand for normal keys -->
+          <div
+            v-if="currentKey && currentKey !== ' ' && currentFinger"
+            class="hand-overlay"
+            :style="handStyle"
+            @mousedown="startDrag('single', $event)"
+            @touchstart.prevent="startDrag('single', $event)"
+          >
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
+              <path
+                class="hand-base"
+                :transform="handSide === 'left' ? 'scale(-1,1) translate(-32,0)' : undefined"
+                d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
+              />
+            </svg>
+          </div>
 
-        <!-- Space: left thumb (orange) + right thumb (blue), each independently draggable -->
-        <template v-if="currentKey === ' '">
-          <div
-            class="hand-overlay"
-            :style="spaceLeftStyle"
-            @mousedown="startDrag('space-left', $event)"
-            @touchstart.prevent="startDrag('space-left', $event)"
-          >
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
-              <path class="hand-base hand-left" transform="scale(-1,1) translate(-32,0)"
-                d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
-              />
-            </svg>
-          </div>
-          <div
-            class="hand-overlay"
-            :style="spaceRightStyle"
-            @mousedown="startDrag('space-right', $event)"
-            @touchstart.prevent="startDrag('space-right', $event)"
-          >
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
-              <path class="hand-base"
-                d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
-              />
-            </svg>
-          </div>
-        </template>
+          <!-- Space: left thumb (orange) + right thumb (blue), each independently draggable -->
+          <template v-if="currentKey === ' '">
+            <div
+              class="hand-overlay"
+              :style="spaceLeftStyle"
+              @mousedown="startDrag('space-left', $event)"
+              @touchstart.prevent="startDrag('space-left', $event)"
+            >
+              <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
+                <path class="hand-base hand-left" transform="scale(-1,1) translate(-32,0)"
+                  d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
+                />
+              </svg>
+            </div>
+            <div
+              class="hand-overlay"
+              :style="spaceRightStyle"
+              @mousedown="startDrag('space-right', $event)"
+              @touchstart.prevent="startDrag('space-right', $event)"
+            >
+              <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
+                <path class="hand-base"
+                  d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
+                />
+              </svg>
+            </div>
+          </template>
+
         </div><!-- end overlay-container -->
       </div>
       <div class="focus-hint" v-if="!hasFocus">Click here to start typing</div>
@@ -127,30 +127,33 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import KeyboardDisplay from '../TypingTutor/KeyboardDisplay.vue'
+import {
+  KEYBOARD_HE,
+  KEY_UNITS,
+  FINGER_MAP,
+  KEY_ROW_HE,
+  HAND_W,
+  computeHandPos,
+} from '../TypingTutor/HebrewKeyboard'
 
-const keyboardWrapper = ref<HTMLElement>()
-const hasFocus = ref(false)
-
-// overlayContainer is positioned to exactly cover the .keyboard element inside KeyboardDisplay
-// so that left/top % values match KeyboardDisplay's coordinate system exactly
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const keyboardWrapper  = ref<HTMLElement>()
 const overlayContainer = ref<HTMLElement>()
+const hasFocus         = ref(false)
+const kbSize           = ref({ width: 0, height: 0 })
 
 function positionOverlay() {
   if (!keyboardWrapper.value || !overlayContainer.value) return
   const kb = keyboardWrapper.value.querySelector('.keyboard') as HTMLElement | null
   if (!kb) return
-  const kbRect = kb.getBoundingClientRect()
+  const kbRect   = kb.getBoundingClientRect()
   const wrapRect = keyboardWrapper.value.getBoundingClientRect()
   overlayContainer.value.style.left   = `${kbRect.left - wrapRect.left}px`
   overlayContainer.value.style.top    = `${kbRect.top  - wrapRect.top}px`
   overlayContainer.value.style.width  = `${kbRect.width}px`
   overlayContainer.value.style.height = `${kbRect.height}px`
-  // Also update kbSize for drag delta calculations
   kbSize.value = { width: kbRect.width, height: kbRect.height }
 }
-
-// keyboard size for drag delta calculations
-const kbSize = ref({ width: 0, height: 0 })
 
 let ro: ResizeObserver | null = null
 
@@ -167,20 +170,14 @@ onMounted(() => {
 onUnmounted(() => ro?.disconnect())
 
 // ── Key state ─────────────────────────────────────────────────────────────────
-const currentKey  = ref('')
-const heldKey     = ref('')
+const currentKey = ref('')
+const heldKey    = ref('')
 
 function onKeyDown(e: KeyboardEvent) {
   e.preventDefault()
   hasFocus.value = true
 
-  // Enter = save current adjustment
-  if (e.key === 'Enter') {
-    if (currentKey.value) saveAdjustment()
-    return
-  }
-
-  // Escape = discard drag, reset to calculated
+  if (e.key === 'Enter') { if (currentKey.value) saveAdjustment(); return }
   if (e.key === 'Escape') {
     if (currentKey.value === ' ') {
       spaceLeftLeft.value  = spaceCalcLeft.value.leftPct
@@ -189,175 +186,31 @@ function onKeyDown(e: KeyboardEvent) {
       spaceRightTop.value  = spaceCalcRight.value.topPct
     } else {
       isDragged.value = false
-      dragLeft.value = calculatedLeft.value
-      dragTop.value  = calculatedTop.value
+      dragLeft.value  = calculatedLeft.value
+      dragTop.value   = calculatedTop.value
     }
     return
   }
-
-  // Ignore modifier-only keys
   if (['Shift','Control','Alt','Meta','CapsLock','Tab'].includes(e.key)) return
 
-  // Auto-save previous if it was dragged before moving to next key
-  if (currentKey.value && isDragged.value) {
-    saveAdjustment()
-  }
+  if (currentKey.value && isDragged.value) saveAdjustment()
 
   const k = e.key === ' ' ? ' ' : e.key
   heldKey.value = k
   setKey(k)
 }
 
-function onKeyUp(e: KeyboardEvent) {
-  heldKey.value = ''
+function onKeyUp() { heldKey.value = '' }
+
+// ── Row labels ────────────────────────────────────────────────────────────────
+const ROW_LABELS: Record<number, string> = {
+  0: 'Number', 1: 'Top', 2: 'Home', 3: 'Bottom', 4: 'Space',
 }
-
-// ── Layout constants (must match KeyboardDisplay exactly) ─────────────────────
-const HAND_W = 0.28
-
-// Finger tip positions in SVG viewBox (0–32), right hand unmirrored
-const FINGER_TIP: Record<string, { x: number; y: number }> = {
-  'right-pinky':  { x: 29.5, y: 8.7  },
-  'right-ring':   { x: 22.2, y: 3.4  },
-  'right-middle': { x: 14.5, y: 2.6  },
-  'right-index':  { x: 6.9,  y: 7.7  },
-  'right-thumb':  { x: 2.9,  y: 26.8 },
-  'left-pinky':   { x: 32 - 29.5, y: 8.7  },
-  'left-ring':    { x: 32 - 22.2, y: 3.4  },
-  'left-middle':  { x: 32 - 14.5, y: 2.6  },
-  'left-index':   { x: 32 - 6.9,  y: 7.7  },
-  'left-thumb':   { x: 32 - 2.9,  y: 26.8 },
-}
-
-const keyUnits: Record<string, number> = {
-  Backspace: 1.5, Tab: 1.5, Caps: 1.7, Enter: 2.1,
-  LShift: 1.9, Shift: 2.2, Ctrl: 1.1, Win: 1.1, Alt: 1.1, Fn: 1.0, Space: 5.5,
-}
-
-const keyboardHE: string[][] = [
-  ['`~', '1!', '2@', '3#', '4$', '5%', '6^', '7&', '8*', '9(', '0)', '-_', '=+', 'Backspace'],
-  ['Tab', '/', '\'', 'ק', 'ר', 'א', 'ט', 'ו', 'ן', 'ם', 'פ', '[{', ']}', '\\|'],
-  ['Caps', 'ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', 'ף:', '\'״', 'Enter'],
-  ['LShift', 'ז', 'ס', 'ב', 'ה', 'נ', 'מ', 'צ', 'ת', 'ץ', '/?', 'Shift'],
-  ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl'],
-]
-
-const homeRowHE = ['Caps', 'ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', 'ף:', '\'״', 'Enter']
-const spaceRow  = ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl']
-
-const fingerHomeKey: Record<string, string> = {
-  'left-pinky': 'ש', 'left-ring': 'ד', 'left-middle': 'ג', 'left-index': 'כ',
-  'right-index': 'י', 'right-middle': 'ל', 'right-ring': 'ך', 'right-pinky': 'ף:',
-  'thumb': 'Space',
-}
-
-function keyCenterFrac(row: string[], targetKey: string): number {
-  const units = row.map(k => keyUnits[k] ?? 1)
-  const total = units.reduce((a, b) => a + b, 0)
-  let acc = 0
-  for (let i = 0; i < row.length; i++) {
-    const u = units[i]
-    const k = row[i]
-    if (k === targetKey || k.includes(targetKey)) return (acc + u / 2) / total
-    acc += u
-  }
-  return 0.5
-}
-
-function fingerColumnFrac(fingerId: string, key: string): number {
-  if (fingerId === 'thumb' || fingerId === 'left-thumb' || fingerId === 'right-thumb') {
-    return keyCenterFrac(spaceRow, 'Space')
-  }
-  // Find the actual key in the correct keyboard row
-  const row = keyRowHE[key] ?? 2
-  const keyboardRow = keyboardHE[row]
-  if (keyboardRow) {
-    const frac = keyCenterFrac(keyboardRow, key)
-    if (frac !== 0.5) return frac  // found it
-  }
-  // Fallback: use home key position
-  const homeKey = fingerHomeKey[fingerId] ?? 'כ'
-  return keyCenterFrac(homeRowHE, homeKey)
-}
-
-function rowCenterFrac(row: number): number {
-  return (row + 0.5) / 5
-}
-
-// Compute hand position as % of keyboard dimensions (same formula as KeyboardDisplay)
-function computeHandPos(fingerId: string, key: string, row: number, kbW: number, kbH: number) {
-  const handPx = kbW * HAND_W
-  const tip = FINGER_TIP[fingerId] ?? { x: 16, y: 8 }
-  const tipXpx = (tip.x / 32) * handPx
-  const tipYpx = (tip.y / 32) * handPx
-  const targetXpx = fingerColumnFrac(fingerId, key) * kbW
-  const targetYpx = rowCenterFrac(row) * kbH
-  let leftPct = ((targetXpx - tipXpx) / kbW) * 100
-  let topPct  = ((targetYpx - tipYpx) / kbH) * 100
-
-  // Absolute calibrated position for thumbs — overrides geometry calculation entirely
-  if (fingerId === 'left-thumb') {
-    return { leftPct: 18.89356060606061, topPct: 10.80415584415583 }
-  } else if (fingerId === 'right-thumb') {
-    return { leftPct: 53.50687229437229, topPct: 14.267359307359285 }
-  } else if (fingerId === 'thumb') {
-    leftPct += 12.368421052631575
-    topPct  += -54.736842105263165
-  }
-
-  return { leftPct, topPct }
-}
-
-// ── Finger / row maps ─────────────────────────────────────────────────────────
-// TODO: Add English layout support later (a-z, punctuation mappings)
-const fingerMap: Record<string, string> = {
-  '`': 'left-pinky', '~': 'left-pinky',
-  '1': 'left-pinky', '!': 'left-pinky',
-  '2': 'left-ring',  '@': 'left-ring',
-  '3': 'left-middle','#': 'left-middle',
-  '4': 'left-index', '$': 'left-index',
-  '5': 'left-index', '%': 'left-index',
-  '6': 'right-index','^': 'right-index',
-  '7': 'right-index','&': 'right-index',
-  '8': 'right-middle','*': 'right-middle',
-  '9': 'right-ring', '(': 'right-ring',
-  '0': 'right-pinky',')': 'right-pinky',
-  '-': 'right-pinky','_': 'right-pinky',
-  '=': 'right-pinky','+': 'right-pinky',
-  'ק': 'left-middle','ר': 'left-index',
-  'א': 'left-index', 'ט': 'right-index', 'ו': 'right-index',
-  'ן': 'right-middle','ם': 'right-ring',
-  'פ': 'right-pinky',
-  'ש': 'left-pinky', 'ד': 'left-ring',
-  'ג': 'left-middle','כ': 'left-index',
-  'ע': 'left-index', 'י': 'right-index',
-  'ח': 'right-index','ל': 'right-middle',
-  'ך': 'right-ring', 'ף': 'right-pinky',
-  'ז': 'left-pinky', 'ס': 'left-ring',
-  'ב': 'left-middle','ה': 'left-index',
-  'נ': 'left-index', 'מ': 'right-index',
-  'צ': 'right-index','ת': 'right-middle',
-  'ץ': 'right-ring',
-  '[': 'right-pinky',']': 'right-pinky',
-  '\\': 'right-pinky','|': 'right-pinky',
-  ' ': 'thumb',
-}
-
-const keyRowHE: Record<string, number> = {
-  '`':0,'~':0,'1':0,'!':0,'2':0,'@':0,'3':0,'#':0,'4':0,'$':0,'5':0,'%':0,
-  '6':0,'^':0,'7':0,'&':0,'8':0,'*':0,'9':0,'(':0,'0':0,')':0,'-':0,'_':0,'=':0,'+':0,
-  '/':1,"'":1,'ק':1,'ר':1,'א':1,'ט':1,'ו':1,'ן':1,'ם':1,'פ':1,']':1,'[':1,'\\':1,
-  'ש':2,'ד':2,'ג':2,'כ':2,'ע':2,'י':2,'ח':2,'ל':2,'ך':2,'ף':2,
-  'ז':3,'ס':3,'ב':3,'ה':3,'נ':3,'מ':3,'צ':3,'ת':3,'ץ':3,'.':3,',':3,
-  ' ':4,
-}
-
-const rowLabels: Record<number, string> = { 0: 'Number', 1: 'Top', 2: 'Home', 3: 'Bottom', 4: 'Space' }
 
 // ── Computed position for current key ─────────────────────────────────────────
-const currentFinger   = computed(() => fingerMap[currentKey.value] ?? '')
-const currentRow      = computed(() => keyRowHE[currentKey.value] ?? 2)
-const currentRowLabel = computed(() => rowLabels[currentRow.value] ?? '')
+const currentFinger   = computed(() => FINGER_MAP[currentKey.value] ?? '')
+const currentRow      = computed(() => KEY_ROW_HE[currentKey.value] ?? 2)
+const currentRowLabel = computed(() => ROW_LABELS[currentRow.value] ?? '')
 const handSide        = computed(() => currentFinger.value.startsWith('left') ? 'left' : 'right')
 
 const calculatedLeft = computed(() => {
@@ -371,16 +224,14 @@ const calculatedTop = computed(() => {
 })
 
 // ── Drag state ────────────────────────────────────────────────────────────────
-const dragLeft = ref(0)
-const dragTop  = ref(0)
+const dragLeft  = ref(0)
+const dragTop   = ref(0)
 const isDragged = ref(false)
 
-// Space key: separate drag state for each thumb
 const spaceLeftLeft  = ref(0)
 const spaceLeftTop   = ref(0)
 const spaceRightLeft = ref(0)
 const spaceRightTop  = ref(0)
-const spaceDragging  = ref<'space-left' | 'space-right' | null>(null)
 
 const spaceCalcLeft  = computed(() => computeHandPos('left-thumb',  ' ', 4, kbSize.value.width, kbSize.value.height))
 const spaceCalcRight = computed(() => computeHandPos('right-thumb', ' ', 4, kbSize.value.width, kbSize.value.height))
@@ -391,15 +242,7 @@ const spaceRightDeltaH = computed(() => spaceRightLeft.value - spaceCalcRight.va
 const spaceRightDeltaV = computed(() => spaceRightTop.value  - spaceCalcRight.value.topPct)
 
 function pctStyle(leftPct: number, topPct: number) {
-  // Use % positioning relative to the .keyboard element — same as KeyboardDisplay
-  // so calibrated deltas are directly transferable
-  return {
-    left:      `${leftPct}%`,
-    top:       `${topPct}%`,
-    width:     `${HAND_W * 100}%`,
-    transform: 'none',
-    bottom:    'auto',
-  }
+  return { left: `${leftPct}%`, top: `${topPct}%`, width: `${HAND_W * 100}%`, transform: 'none', bottom: 'auto' }
 }
 
 const spaceLeftStyle  = computed(() => pctStyle(spaceLeftLeft.value,  spaceLeftTop.value))
@@ -407,9 +250,9 @@ const spaceRightStyle = computed(() => pctStyle(spaceRightLeft.value, spaceRight
 
 function setKey(k: string) {
   currentKey.value = k
-  isDragged.value = false
-  dragLeft.value = calculatedLeft.value
-  dragTop.value  = calculatedTop.value
+  isDragged.value  = false
+  dragLeft.value   = calculatedLeft.value
+  dragTop.value    = calculatedTop.value
   if (k === ' ') {
     spaceLeftLeft.value  = spaceCalcLeft.value.leftPct
     spaceLeftTop.value   = spaceCalcLeft.value.topPct
@@ -418,40 +261,28 @@ function setKey(k: string) {
   }
 }
 
-const handStyle = computed(() => {
-  return {
-    left:      `${dragLeft.value}%`,
-    top:       `${dragTop.value}%`,
-    width:     `${HAND_W * 100}%`,
-    transform: 'none',
-    bottom:    'auto',
-  }
-})
+const handStyle = computed(() => pctStyle(dragLeft.value, dragTop.value))
+const deltaH    = computed(() => dragLeft.value - calculatedLeft.value)
+const deltaV    = computed(() => dragTop.value  - calculatedTop.value)
 
-const deltaH = computed(() => dragLeft.value - calculatedLeft.value)
-const deltaV = computed(() => dragTop.value  - calculatedTop.value)
-
+// ── Drag interaction ──────────────────────────────────────────────────────────
 let dragging = false
 let startX = 0, startY = 0, startLeft = 0, startTop = 0
 let dragMode: 'single' | 'space-left' | 'space-right' = 'single'
 
 function startDrag(mode: 'single' | 'space-left' | 'space-right', e: MouseEvent | TouchEvent) {
-  dragging = true
-  dragMode = mode
-  const cx = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX
-  const cy = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY
+  dragging  = true
+  dragMode  = mode
+  const cx  = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX
+  const cy  = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY
   startX = cx; startY = cy
-  if (mode === 'single') {
-    startLeft = dragLeft.value; startTop = dragTop.value
-  } else if (mode === 'space-left') {
-    startLeft = spaceLeftLeft.value; startTop = spaceLeftTop.value
-  } else {
-    startLeft = spaceRightLeft.value; startTop = spaceRightTop.value
-  }
+  if (mode === 'single')       { startLeft = dragLeft.value;       startTop = dragTop.value }
+  else if (mode === 'space-left') { startLeft = spaceLeftLeft.value;  startTop = spaceLeftTop.value }
+  else                         { startLeft = spaceRightLeft.value; startTop = spaceRightTop.value }
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('touchmove', onDrag, { passive: false })
-  document.addEventListener('mouseup', stopDrag)
-  document.addEventListener('touchend', stopDrag)
+  document.addEventListener('mouseup',   stopDrag)
+  document.addEventListener('touchend',  stopDrag)
 }
 
 function onDrag(e: MouseEvent | TouchEvent) {
@@ -462,8 +293,8 @@ function onDrag(e: MouseEvent | TouchEvent) {
   const dx = ((cx - startX) / kbSize.value.width)  * 100
   const dy = ((cy - startY) / kbSize.value.height) * 100
   if (dragMode === 'single') {
-    dragLeft.value = startLeft + dx
-    dragTop.value  = startTop  + dy
+    dragLeft.value  = startLeft + dx
+    dragTop.value   = startTop  + dy
     isDragged.value = true
   } else if (dragMode === 'space-left') {
     spaceLeftLeft.value = startLeft + dx
@@ -478,29 +309,22 @@ function stopDrag() {
   dragging = false
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-  document.removeEventListener('touchend', stopDrag)
+  document.removeEventListener('mouseup',   stopDrag)
+  document.removeEventListener('touchend',  stopDrag)
 }
 
 // ── Saved adjustments ─────────────────────────────────────────────────────────
 interface Adjustment {
-  finger: string
-  row: number
-  rowLabel: string
-  key: string
-  calculatedLeft: number
-  calculatedTop: number
-  draggedLeft: number
-  draggedTop: number
-  deltaH: number
-  deltaV: number
+  finger: string; row: number; rowLabel: string; key: string
+  calculatedLeft: number; calculatedTop: number
+  draggedLeft: number; draggedTop: number
+  deltaH: number; deltaV: number
 }
 
 const savedAdjustments = ref<Adjustment[]>([])
 
 function saveAdjustment() {
   if (currentKey.value === ' ') {
-    // Save both thumbs separately
     const entries: Adjustment[] = [
       {
         finger: 'left-thumb', row: 4, rowLabel: 'Space', key: ' ',
@@ -541,7 +365,6 @@ function saveAdjustment() {
     deltaH:         deltaH.value,
     deltaV:         deltaV.value,
   }
-  // Replace existing entry for same finger+row
   const idx = savedAdjustments.value.findIndex(a => a.finger === adj.finger && a.row === adj.row)
   if (idx >= 0) savedAdjustments.value[idx] = adj
   else savedAdjustments.value.push(adj)
@@ -549,21 +372,14 @@ function saveAdjustment() {
 }
 
 async function submitAll() {
-  const payload = {
-    adjustments: savedAdjustments.value,
-    timestamp: new Date().toISOString(),
-  }
+  const payload = { adjustments: savedAdjustments.value, timestamp: new Date().toISOString() }
   try {
     const res = await fetch('/api/save-hand-offsets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    if (res.ok) {
-      alert(`✓ Saved ${savedAdjustments.value.length} adjustments`)
-    } else {
-      alert('✗ Failed to save')
-    }
+    alert(res.ok ? `✓ Saved ${savedAdjustments.value.length} adjustments` : '✗ Failed to save')
   } catch (err) {
     alert(`✗ Error: ${err}`)
   }
@@ -581,7 +397,7 @@ async function submitAll() {
   box-sizing: border-box;
 }
 
-/* ── Controls (top, scrollable) ── */
+/* ── Controls ── */
 .controls {
   flex: 1 1 0;
   min-height: 0;
@@ -597,12 +413,7 @@ async function submitAll() {
   margin: 0 auto;
 }
 
-.controls h3 {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: #000;
-}
+.controls h3 { margin: 0; font-size: 17px; font-weight: 700; color: #000; }
 
 .instructions {
   background: #fff9e6;
@@ -614,6 +425,7 @@ async function submitAll() {
   line-height: 1.5;
 }
 .instructions p { margin: 2px 0; }
+
 kbd {
   background: #eee;
   border: 1px solid #ccc;
@@ -633,18 +445,8 @@ kbd {
   padding: 10px 14px;
 }
 
-.key-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: #0078d4;
-  line-height: 1;
-  min-width: 32px;
-}
-
-.key-meta {
-  font-size: 13px;
-  color: #555;
-}
+.key-value { font-size: 32px; font-weight: 700; color: #0078d4; line-height: 1; min-width: 32px; }
+.key-meta  { font-size: 13px; color: #555; }
 
 .offset-box {
   display: flex;
@@ -673,18 +475,8 @@ kbd {
 .save-btn:hover { opacity: 0.88; }
 .save-btn.saved { background: #107c10; }
 
-.saved-header {
-  font-size: 12px;
-  font-weight: 600;
-  color: #555;
-}
-
-.saved-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
+.saved-list { display: flex; flex-direction: column; gap: 3px; }
+.saved-header { font-size: 12px; font-weight: 600; color: #555; }
 .saved-item {
   font-size: 11px;
   color: #555;
@@ -708,7 +500,7 @@ kbd {
 }
 .submit-btn:hover { opacity: 0.88; }
 
-/* ── Keyboard area (bottom, fixed height) ── */
+/* ── Keyboard area ── */
 .keyboard-area {
   flex: 0 0 auto;
   padding: 8px 20px 16px;
@@ -727,15 +519,9 @@ kbd {
   user-select: none;
   outline: none;
 }
-.keyboard-wrapper:focus {
-  outline: 2px solid #0078d4;
-  border-radius: 4px;
-}
+.keyboard-wrapper:focus { outline: 2px solid #0078d4; border-radius: 4px; }
 
-.focus-hint {
-  font-size: 12px;
-  color: #999;
-}
+.focus-hint { font-size: 12px; color: #999; }
 
 .hand-overlay {
   position: absolute;
@@ -752,6 +538,7 @@ kbd {
   z-index: 10;
   overflow: visible;
 }
+
 .hand-svg {
   width: 100%;
   height: auto;
@@ -759,13 +546,6 @@ kbd {
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
 }
 
-.hand-base {
-  fill: #0078d4;
-  opacity: 0.55;
-}
-
-.hand-left {
-  fill: #e05c00;
-  opacity: 0.55;
-}
+.hand-base { fill: #0078d4; opacity: 0.55; }
+.hand-left { fill: #e05c00; opacity: 0.55; }
 </style>

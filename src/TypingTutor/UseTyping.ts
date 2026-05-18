@@ -48,6 +48,7 @@ export function getZoneName(zone: ZoneKey): string {
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { stages as bundledStages } from 'virtual:stages'
 import { fireConfetti } from '../composables/useConfetti'
+import { AYIN } from './HebrewKeyboard'
 
 export function useTyping(initialLesson: Lesson) {
   // ── Core state ──────────────────────────────────────────────────────────────

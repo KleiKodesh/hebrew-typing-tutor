@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import './styles.css'
 
 function setVhVariable() {
 	const visualHeight = (window as any).visualViewport?.height || window.innerHeight
