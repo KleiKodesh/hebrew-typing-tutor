@@ -112,7 +112,6 @@ function keyClasses(key: string) {
     held:    keyMatches(key, props.heldKey),
     next:    keyMatches(key, props.nextKey),
     mistake: keyMatches(key, props.mistakeKey),
-    active:  keyMatches(key, props.nextKey) || keyMatches(key, props.heldKey) || keyMatches(key, props.mistakeKey),
     special: wideKeys.has(key) || (key.length > 1 && !isDualKey(key))
   }
 }
@@ -269,6 +268,7 @@ function fingerColumnFrac(fingerId: string, isHebrew: boolean): number {
 }
 
 // Finger map: key → finger id
+// TODO: Add English layout support later (a-z, punctuation mappings)
 const fingerMap: Record<string, string> = {
   '`': 'left-pinky', '~': 'left-pinky',
   '1': 'left-pinky', '!': 'left-pinky',
@@ -283,23 +283,22 @@ const fingerMap: Record<string, string> = {
   '0': 'right-pinky',')': 'right-pinky',
   '-': 'right-pinky','_': 'right-pinky',
   '=': 'right-pinky','+': 'right-pinky',
-  '/': 'left-pinky', "'": 'left-ring',
   'ק': 'left-middle','ר': 'left-index',
   'א': 'left-index', 'ט': 'right-index', 'ו': 'right-index',
   'ן': 'right-middle','ם': 'right-ring',
-  'פ': 'right-pinky','ך': 'right-ring',
-  'ף': 'right-pinky',']': 'right-pinky',
-  '[': 'right-pinky','\\': 'right-pinky',
+  'פ': 'right-pinky',
   'ש': 'left-pinky', 'ד': 'left-ring',
   'ג': 'left-middle','כ': 'left-index',
   'ע': 'left-index', 'י': 'right-index',
-  'ח': 'right-index',
+  'ח': 'right-index','ל': 'right-middle',
+  'ך': 'right-ring', 'ף': 'right-pinky',
   'ז': 'left-pinky', 'ס': 'left-ring',
   'ב': 'left-middle','ה': 'left-index',
   'נ': 'left-index', 'מ': 'right-index',
   'צ': 'right-index','ת': 'right-middle',
-  'ץ': 'right-ring', '.': 'right-pinky',
-  ',': 'right-pinky',
+  'ץ': 'right-ring',
+  '[': 'right-pinky',']': 'right-pinky',
+  '\\': 'right-pinky','|': 'right-pinky',
   ' ': 'thumb',
 }
 
@@ -425,10 +424,6 @@ const handOverlay = computed(() => {
 }
 
 
-.key.active {
-  opacity: 0.85;
-}
-
 .single-key-content {
   display: flex;
   align-items: center;
@@ -465,22 +460,22 @@ const handOverlay = computed(() => {
 }
 
 .key.held {
-  background: #3b82f6;
-  border-color: #2563eb;
-  color: #ffffff;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
   box-shadow: none;
 }
 
 .key.next {
-  background: #fef9c3;
-  border-color: #fbbf24;
-  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #854d0e;
   box-shadow: none;
 }
 
 .key.mistake {
-  background: #fee2e2;
-  border-color: #fca5a5;
+  background: #fdf2f2;
+  border-color: #fecaca;
   color: #991b1b;
   box-shadow: none;
 }
@@ -506,11 +501,12 @@ const handOverlay = computed(() => {
 }
 
 .hand-base {
-  fill: var(--text-secondary);
-  opacity: 0.45;
+  fill: rgba(15, 23, 42, 0.75);
+  opacity: 1;
 }
 
 [data-theme='dark'] .hand-base {
-  opacity: 0.50;
+  fill: rgba(226, 232, 240, 0.85);
+  opacity: 1;
 }
 </style>

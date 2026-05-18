@@ -188,6 +188,20 @@ export function useTyping(initialLesson: Lesson) {
     )
   })
 
+  const lessonProgression = computed(() => {
+    if (!currentStage.value || currentLessonIndex.value < 0) return ''
+    const current = currentLessonIndex.value + 1
+    const total = currentStage.value.lessons.length
+    return `${current}/${total}`
+  })
+
+  const stageProgression = computed(() => {
+    if (currentStageIndex.value < 0) return ''
+    const current = currentStageIndex.value + 1
+    const total = allStages.value.length
+    return `${current}/${total}`
+  })
+
   const canGoPrev = computed(() => currentLessonIndex.value > 0)
 
   const canGoNext = computed(
@@ -606,6 +620,19 @@ export function useTyping(initialLesson: Lesson) {
     if (savedProgress) lessonProgress.value = JSON.parse(savedProgress)
   })
 
+  // ── Update document title with progression ──────────────────────────────────
+  watch(
+    () => ({ stage: currentStageIndex.value, lesson: currentLessonIndex.value }),
+    () => {
+      const stageProg = stageProgression.value
+      const lessonProg = lessonProgression.value
+      if (stageProg && lessonProg) {
+        document.title = `שלב ${stageProg} • שיעור ${lessonProg}`
+      }
+    },
+    { immediate: true }
+  )
+
   onUnmounted(() => {
     stopSessionTimer()
   })
@@ -658,6 +685,9 @@ export function useTyping(initialLesson: Lesson) {
     canGoPrevStage,
     canGoNextStage,
     highlightNextStage,
+    // progression
+    lessonProgression,
+    stageProgression,
     // navigation actions
     goPrevLesson,
     goNextLesson,

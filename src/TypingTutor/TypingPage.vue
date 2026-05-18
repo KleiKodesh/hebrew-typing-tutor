@@ -156,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from './KeyboardDisplay.vue'
@@ -205,6 +205,9 @@ const {
   canGoPrevStage,
   canGoNextStage,
   highlightNextStage,
+  // progression
+  lessonProgression,
+  stageProgression,
   // navigation actions
   goPrevLesson,
   goNextLesson,
@@ -220,6 +223,16 @@ const {
   // current target (for recall display)
   currentTarget,
 } = useTyping({ title: '', text: '' })
+
+// Update document title with lesson progression
+watch([lessonProgression, stageProgression, currentLesson], () => {
+  const lessonNum = lessonProgression.value
+  const stageNum = stageProgression.value
+  const title = lessonNum && stageNum 
+    ? `שלב ${stageNum} • שיעור ${lessonNum}`
+    : 'מדריך הקלדה בעברית'
+  document.title = title
+}, { immediate: true })
 
 // expose currentTarget for recall panel
 // (it's already returned from useTyping)

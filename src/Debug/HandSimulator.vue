@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
-import KeyboardDisplay from './KeyboardDisplay.vue'
+import KeyboardDisplay from '../TypingTutor/KeyboardDisplay.vue'
 
 const keyboardWrapper = ref<HTMLElement>()
 const hasFocus = ref(false)
@@ -237,6 +237,7 @@ function computeHandPos(fingerId: string, key: string, row: number, kbW: number,
 }
 
 // ── Finger / row maps ─────────────────────────────────────────────────────────
+// TODO: Add English layout support later (a-z, punctuation mappings)
 const fingerMap: Record<string, string> = {
   '`': 'left-pinky', '~': 'left-pinky',
   '1': 'left-pinky', '!': 'left-pinky',
@@ -251,23 +252,22 @@ const fingerMap: Record<string, string> = {
   '0': 'right-pinky',')': 'right-pinky',
   '-': 'right-pinky','_': 'right-pinky',
   '=': 'right-pinky','+': 'right-pinky',
-  '/': 'left-pinky', "'": 'left-ring',
   'ק': 'left-middle','ר': 'left-index',
   'א': 'left-index', 'ט': 'right-index', 'ו': 'right-index',
   'ן': 'right-middle','ם': 'right-ring',
-  'פ': 'right-pinky','ך': 'right-ring',
-  'ף': 'right-pinky',']': 'right-pinky',
-  '[': 'right-pinky','\\': 'right-pinky',
+  'פ': 'right-pinky',
   'ש': 'left-pinky', 'ד': 'left-ring',
   'ג': 'left-middle','כ': 'left-index',
   'ע': 'left-index', 'י': 'right-index',
   'ח': 'right-index','ל': 'right-middle',
+  'ך': 'right-ring', 'ף': 'right-pinky',
   'ז': 'left-pinky', 'ס': 'left-ring',
   'ב': 'left-middle','ה': 'left-index',
   'נ': 'left-index', 'מ': 'right-index',
   'צ': 'right-index','ת': 'right-middle',
-  'ץ': 'right-ring', '.': 'right-pinky',
-  ',': 'right-pinky',
+  'ץ': 'right-ring',
+  '[': 'right-pinky',']': 'right-pinky',
+  '\\': 'right-pinky','|': 'right-pinky',
   ' ': 'thumb',
 }
 

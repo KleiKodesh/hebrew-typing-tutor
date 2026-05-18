@@ -1,14 +1,14 @@
 <template>
   <div class="app">
-    <div v-if="showSimulator" class="mode-toggle">
+    <div v-if="debugEnabled && showSimulator" class="mode-toggle">
       <button @click="showSimulator = false">← Back to Tutor</button>
     </div>
-    <div v-else class="mode-toggle">
+    <div v-else-if="debugEnabled" class="mode-toggle">
       <button @click="showSimulator = true">Debug: Hand Simulator →</button>
     </div>
 
     <TypingPage v-if="!showSimulator" />
-    <SimulatorPage v-else />
+    <SimulatorPage v-else-if="debugEnabled" />
   </div>
 </template>
 
@@ -16,8 +16,10 @@
 import { ref } from 'vue'
 import TypingPage from './TypingTutor/TypingPage.vue'
 import SimulatorPage from './TypingTutor/SimulatorPage.vue'
+import { DEBUG_CONFIG } from './Debug/config'
 
 const showSimulator = ref(false)
+const debugEnabled = DEBUG_CONFIG.ENABLE_HAND_SIMULATOR
 </script>
 
 <style>

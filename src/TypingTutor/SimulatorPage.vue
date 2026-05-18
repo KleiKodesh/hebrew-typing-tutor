@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import HandSimulator from './HandSimulator.vue'
+import HandSimulator from '../Debug/HandSimulator.vue'
 </script>
 
 <style scoped>
