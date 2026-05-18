@@ -110,12 +110,12 @@ watch(
 }
 
 .sample-hidden {
-  font-size: clamp(13px, 2vw, 16px);
+  font-size: 14px;
   color: var(--text-tertiary);
   padding: 12px 16px;
   font-style: italic;
   text-align: center;
-  height: clamp(48px, 8vw, 64px);
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,9 +131,9 @@ watch(
 /* ── Tunnel strip ── */
 .tunnel {
   color: var(--text-secondary);
-  font-size: clamp(14px, 2.2vw, 18px);
-  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 2vw, 16px);
-  height: clamp(48px, 8vw, 64px);
+  font-size: 16px;
+  padding: 12px 14px;
+  height: 56px;
   overflow-x: scroll;
   overflow-y: hidden;
   scroll-behavior: smooth;
@@ -148,10 +148,10 @@ watch(
 
 .fluent-input {
   width: 100%;
-  height: clamp(56px, 10vw, 80px);
+  height: 64px;
   resize: none;
-  padding: clamp(12px, 2vw, 16px) clamp(12px, 2vw, 16px);
-  font-size: clamp(16px, 2.5vw, 20px);
+  padding: 14px 14px;
+  font-size: 18px;
   line-height: 1.5;
   border-radius: 0 0 8px 8px;
   border: none;
