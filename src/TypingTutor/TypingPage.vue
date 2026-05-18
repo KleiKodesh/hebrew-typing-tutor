@@ -69,6 +69,7 @@
       @next-lesson="goNextLesson"
       @next-stage="goNextStage"
       @show-intro="emit('show-intro')"
+      @new-user="emit('new-user')"
     />
 
     <!-- ── Main content ── -->
@@ -168,7 +169,7 @@ import StatsBar from './StatsBar.vue'
 import { useTyping, getZoneName } from './UseTyping'
 import { useUserProfile } from '../composables/useUserProfile'
 
-const emit = defineEmits<{ 'show-intro': [] }>()
+const emit = defineEmits<{ 'show-intro': []; 'new-user': [] }>()
 
 const { userName } = useUserProfile()
 
@@ -243,7 +244,7 @@ const complimentMessages = [
   'כל הכבוד',
   'עבודה מצוינת',
   'מדהים',
-  'יופי של עבודה',
+  'Ỹ של עבודה',
   'ממשיכים קדימה',
   'מושלם',
 ]
@@ -282,8 +283,11 @@ body {
   flex-direction: column;
 }
 
-:root {
+html, body {
   direction: rtl;
+}
+
+:root {
   --bg-primary: #ffffff;
   --bg-secondary: #f3f3f7;
   --bg-tertiary: #ececf1;

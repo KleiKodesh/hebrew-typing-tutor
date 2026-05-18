@@ -72,6 +72,15 @@ export function useUserProfile() {
     localStorage.removeItem(ACTIVE_USER_KEY)
   }
 
+  function deleteUser(name: string) {
+    allUsers.value = allUsers.value.filter((u) => u !== name)
+    saveAllUsers(allUsers.value)
+    // If we deleted the active user, clear it
+    if (userName.value === name) {
+      clearUser()
+    }
+  }
+
   return {
     userName,
     allUsers,
@@ -82,5 +91,6 @@ export function useUserProfile() {
     markIntroSeen,
     resetIntro,
     clearUser,
+    deleteUser,
   }
 }

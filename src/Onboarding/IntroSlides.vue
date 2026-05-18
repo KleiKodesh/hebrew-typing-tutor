@@ -4,12 +4,13 @@
 
       <!-- Progress dots -->
       <div class="intro-dots" aria-hidden="true">
-        <span
+        <button
           v-for="i in slides.length"
           :key="i"
           class="intro-dot"
           :class="{ active: i - 1 === currentIndex }"
           @click="currentIndex = i - 1"
+          :aria-label="`עבור לשקופית ${i}`"
         />
       </div>
 
@@ -17,7 +18,6 @@
       <transition :name="slideDirection" mode="out-in">
         <div class="intro-slide" :key="currentIndex">
           <div class="intro-slide-number">{{ currentIndex + 1 }} / {{ slides.length }}</div>
-          <div class="intro-slide-icon" aria-hidden="true">{{ slides[currentIndex].icon }}</div>
           <h2 class="intro-slide-title">{{ slides[currentIndex].title }}</h2>
           <p class="intro-slide-body">{{ slides[currentIndex].body }}</p>
         </div>
@@ -62,27 +62,22 @@ const emit = defineEmits<{
 
 const slides = [
   {
-    icon: '⌨️',
     title: 'מהי הקלדה עיוורת?',
     body: 'הקלדה עיוורת משמעותה הקלדה ללא הסתכלות על המקלדת, תוך שימוש בכל עשר האצבעות והסתמכות על זיכרון שרירים במקום על רמזים חזותיים. במקום לחפש מקשים, האצבעות שלך יודעות אוטומטית לאן לפנות. זוהי השקעה חד-פעמית עם תשואות לטווח ארוך.',
   },
   {
-    icon: '🏠',
     title: 'שורת הבסיס: העוגן שלך',
     body: 'הנח את אצבעות יד שמאל על המקשים כ, ג, ד, ש ואת אצבעות יד ימין על ח, ל, ך, ף. האגודלים נחים על מקש הרווח. שמונת המקשים הללו הם העוגן שלך — כל הקשה מתחילה ומסתיימת כאן. הבליטות המישושיות נמצאות על המקשים כ (יד שמאל) ו-ח (יד ימין) — הן יעזרו לך למצוא את שורת הבסיס ללא הסתכלות.',
   },
   {
-    icon: '🖐️',
     title: 'לכל אצבע העמודה שלה',
     body: 'המקלדת מחולקת לעמודות אנכיות — כל אצבע אחראית על עמודה קבועה בכל השורות. למשל, אצבע המורה של יד שמאל מכסה את כ, ר, ה, ו-4 בכל השורות מלמעלה למטה. לעולם אל תגיע למקש עם האצבע הלא נכונה. שמירה על הכלל הזה מקצרת את המרחק שהאצבעות עוברות, משפרת מהירות ומפחיתה עומס. לשיפט — השתמש תמיד בזרת של היד הנגדית לאות, כך ששתי הידיים עובדות בו-זמנית.',
   },
   {
-    icon: '🎯',
     title: 'דיוק לפני מהירות',
     body: 'הטעות הנפוצה ביותר בקרב מתחילים היא ניסיון להקליד מהר מדי בשלב מוקדם. כלל אצבע טוב: אם הדיוק יורד מתחת ל-90%, האט. המהירות היא תוצר לוואי של הדיוק. עקביות חשובה יותר מאינטנסיביות — תרגול קצר כל יום עדיף על מפגשים ארוכים ולא סדירים.',
   },
   {
-    icon: '📅',
     title: 'אל תסתכל והישאר עקבי',
     body: 'התנגד לכל דחף להסתכל על המקלדת בזמן ההקלדה. תרגל 15–30 דקות ביום בעקביות. בקצב זה, תתחיל להקליד בשיטה עיוורת תוך כחודש, ועם עוד חודש של תרגול תגיע ל-30–40 מילים לדקה.',
   },
@@ -109,7 +104,7 @@ function prev() {
 }
 
 function handleBackdropClick() {
-  // Don't close on backdrop click — user must explicitly navigate
+  // Don't close on backdrop click
 }
 </script>
 
@@ -117,32 +112,36 @@ function handleBackdropClick() {
 .intro-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 500;
   padding: 16px;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
 }
 
 .intro-card {
   background: var(--bg-primary);
-  border-radius: 20px;
-  padding: clamp(24px, 4vw, 40px) clamp(20px, 3.5vw, 36px);
-  max-width: 480px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  max-width: 380px;
   width: 100%;
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.06),
+    0 4px 12px rgba(0,0,0,0.08),
+    0 16px 40px rgba(0,0,0,0.07);
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  direction: rtl;
-  animation: cardIn 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  gap: 0;
+  text-align: center;
+  overflow: hidden;
+  animation: cardIn 200ms cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 @keyframes cardIn {
-  from { opacity: 0; transform: scale(0.9) translateY(16px); }
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -151,57 +150,60 @@ function handleBackdropClick() {
   display: flex;
   gap: 6px;
   justify-content: center;
+  padding: clamp(16px, 2.8vw, 20px) clamp(16px, 2.8vw, 20px) clamp(12px, 2vw, 16px);
 }
 
 .intro-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--border-color);
   cursor: pointer;
   transition: background 200ms, transform 200ms;
   flex-shrink: 0;
+  border: none;
+  padding: 0;
+}
+
+.intro-dot:hover {
+  background: var(--text-tertiary);
 }
 
 .intro-dot.active {
   background: var(--accent-primary);
-  transform: scale(1.25);
+  transform: scale(1.3);
 }
 
 /* Slide */
 .intro-slide {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  text-align: center;
-  min-height: 220px;
+  gap: 10px;
+  padding: clamp(16px, 2.8vw, 24px) clamp(20px, 3.5vw, 28px);
+  min-height: 160px;
   justify-content: center;
 }
 
 .intro-slide-number {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
 }
 
-.intro-slide-icon {
-  font-size: clamp(36px, 6vw, 52px);
-  line-height: 1;
-}
-
 .intro-slide-title {
-  font-size: clamp(17px, 2.8vw, 22px);
-  font-weight: 700;
+  font-size: clamp(17px, 2.6vw, 20px);
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.3;
+  letter-spacing: -0.02em;
 }
 
 .intro-slide-body {
-  font-size: clamp(13px, 1.9vw, 15px);
+  font-size: clamp(12px, 1.8vw, 13px);
   color: var(--text-secondary);
-  line-height: 1.65;
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -210,22 +212,24 @@ function handleBackdropClick() {
   display: flex;
   gap: 8px;
   justify-content: space-between;
+  padding: clamp(12px, 2vw, 16px) clamp(16px, 2.8vw, 20px) clamp(16px, 2.8vw, 20px);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .intro-btn {
   flex: 1;
-  padding: clamp(10px, 1.8vw, 13px) clamp(14px, 2.5vw, 20px);
-  border-radius: 10px;
-  font-size: clamp(13px, 1.9vw, 15px);
+  padding: clamp(8px, 1.4vw, 10px) clamp(12px, 2vw, 16px);
+  border-radius: 4px;
+  font-size: clamp(12px, 1.8vw, 13px);
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: opacity 150ms, transform 120ms;
+  transition: opacity 120ms, background 120ms;
   font-family: inherit;
 }
 
-.intro-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-.intro-btn:active { transform: translateY(0); }
+.intro-btn:hover { opacity: 0.88; }
+.intro-btn:active { opacity: 0.76; }
 
 .intro-btn.primary {
   background: var(--accent-primary);
@@ -249,11 +253,11 @@ function handleBackdropClick() {
 .slide-next-leave-active,
 .slide-prev-enter-active,
 .slide-prev-leave-active {
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition: opacity 160ms ease, transform 160ms ease;
 }
 
-.slide-next-enter-from { opacity: 0; transform: translateX(-24px); }
-.slide-next-leave-to   { opacity: 0; transform: translateX(24px); }
-.slide-prev-enter-from { opacity: 0; transform: translateX(24px); }
-.slide-prev-leave-to   { opacity: 0; transform: translateX(-24px); }
+.slide-next-enter-from { opacity: 0; transform: translateX(-16px); }
+.slide-next-leave-to   { opacity: 0; transform: translateX(16px); }
+.slide-prev-enter-from { opacity: 0; transform: translateX(16px); }
+.slide-prev-leave-to   { opacity: 0; transform: translateX(-16px); }
 </style>

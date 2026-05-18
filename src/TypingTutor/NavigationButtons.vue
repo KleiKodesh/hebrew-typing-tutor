@@ -76,7 +76,7 @@
         </svg>
       </button>
       <!-- User dropdown -->
-      <UserDropdown @show-intro="$emit('show-intro')" />
+      <UserDropdown @show-intro="$emit('show-intro')" @new-user="$emit('new-user')" @user-deleted="$emit('show-intro')" />
     </div>
   </div>
 </template>
@@ -101,7 +101,7 @@ defineProps<{
   lessonStageLabel?: string
 }>()
 
-defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro'])
+defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro', 'new-user'])
 </script>
 
 <style scoped>

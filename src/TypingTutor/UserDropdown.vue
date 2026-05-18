@@ -37,6 +37,16 @@
             <svg v-if="user === userName" class="item-check" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
               <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
+            <button
+              class="item-delete"
+              @click="handleDeleteUser($event, user)"
+              title="מחק משתמש"
+              aria-label="מחק משתמש"
+            >
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M19 6L5 20M5 6L19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
           </button>
         </div>
 
@@ -44,11 +54,9 @@
 
         <!-- Add new user -->
         <div class="dropdown-section">
-          <div v-if="!showNewUserInput" class="dropdown-section-label">הוסף משתמש</div>
           <button
-            v-if="!showNewUserInput"
             class="dropdown-item new-user-btn"
-            @click="openNewUserInput"
+            @click="submitNewUser"
           >
             <svg class="item-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
               <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -57,28 +65,30 @@
             </svg>
             <span>משתמש חדש</span>
           </button>
-
-          <!-- Inline new-user form -->
-          <form v-else class="new-user-form" @submit.prevent="submitNewUser">
-            <input
-              ref="newUserInputEl"
-              v-model="newUserName"
-              class="new-user-input"
-              type="text"
-              placeholder="שם המשתמש..."
-              maxlength="40"
-              dir="auto"
-              aria-label="שם משתמש חדש"
-            />
-            <div class="new-user-actions">
-              <button type="button" class="new-user-cancel" @click="cancelNewUser">ביטול</button>
-              <button type="submit" class="new-user-confirm" :disabled="!newUserName.trim()">הוסף</button>
-            </div>
-          </form>
         </div>
 
       </div>
     </transition>
+
+    <!-- Delete confirmation dialog -->
+    <Teleport to="body">
+      <transition name="dialog">
+        <div v-if="deleteConfirmUser" class="delete-backdrop" @click.self="deleteConfirmUser = null">
+          <div class="delete-dialog">
+            <div class="delete-message">
+              <span>האם אתה בטוח שברצונך למחוק את </span>
+              <span class="delete-name">{{ deleteConfirmUser }}</span>
+              <span>?</span>
+            </div>
+            <div class="delete-warning">כל הנתונים שלו יימחקו.</div>
+            <div class="delete-actions">
+              <button class="delete-btn cancel" @click="deleteConfirmUser = null">ביטול</button>
+              <button class="delete-btn confirm" @click="confirmDelete">מחק</button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
   </div>
 </template>
 
@@ -86,13 +96,16 @@
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useUserProfile } from '../composables/useUserProfile'
 
-const { userName, allUsers, switchUser, addUser } = useUserProfile()
+const emit = defineEmits<{
+  'new-user': []
+  'user-deleted': []
+}>()
+
+const { userName, allUsers, switchUser, deleteUser } = useUserProfile()
 
 const isOpen = ref(false)
-const showNewUserInput = ref(false)
-const newUserName = ref('')
 const wrapEl = ref<HTMLElement | null>(null)
-const newUserInputEl = ref<HTMLInputElement | null>(null)
+const deleteConfirmUser = ref<string | null>(null)
 
 function toggle() {
   isOpen.value = !isOpen.value
@@ -105,8 +118,7 @@ function close() {
 }
 
 function resetForm() {
-  showNewUserInput.value = false
-  newUserName.value = ''
+  // no-op now
 }
 
 function selectUser(name: string) {
@@ -114,20 +126,33 @@ function selectUser(name: string) {
   close()
 }
 
+function handleDeleteUser(e: Event, name: string) {
+  e.stopPropagation()
+  deleteConfirmUser.value = name
+}
+
+function confirmDelete() {
+  if (deleteConfirmUser.value) {
+    const wasActive = deleteConfirmUser.value === userName.value
+    deleteUser(deleteConfirmUser.value)
+    deleteConfirmUser.value = null
+    if (wasActive) {
+      emit('user-deleted')
+    }
+  }
+}
+
 function openNewUserInput() {
-  showNewUserInput.value = true
-  nextTick(() => newUserInputEl.value?.focus())
+  // removed
 }
 
 function cancelNewUser() {
-  resetForm()
+  // removed
 }
 
 function submitNewUser() {
-  const trimmed = newUserName.value.trim()
-  if (!trimmed) return
-  addUser(trimmed)
   close()
+  emit('new-user')
 }
 
 // Close on outside click
@@ -198,7 +223,6 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   box-shadow: var(--shadow-lg);
   z-index: 400;
   overflow: hidden;
-  direction: rtl;
 }
 
 .dropdown-section {
@@ -273,6 +297,30 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   flex-shrink: 0;
 }
 
+.item-delete {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 140ms;
+}
+
+.item-delete:hover {
+  color: var(--error-color);
+}
+
+.item-delete svg {
+  width: 100%;
+  height: 100%;
+}
+
 .item-icon {
   width: 18px;
   height: 18px;
@@ -284,46 +332,68 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   color: var(--text-secondary);
 }
 
-/* Inline new-user form */
-.new-user-form {
-  padding: 4px 6px 2px;
+/* Delete confirmation dialog */
+.delete-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.delete-dialog {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 300px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  animation: dialogIn 200ms cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
-.new-user-input {
-  width: 100%;
-  padding: 7px 10px;
-  font-size: clamp(12px, 1.8vw, 14px);
-  border-radius: 8px;
-  border: 1.5px solid var(--border-color);
-  background: var(--bg-secondary);
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.delete-message {
+  font-size: 14px;
   color: var(--text-primary);
-  outline: none;
-  font-family: inherit;
-  box-sizing: border-box;
-  transition: border-color 160ms, box-shadow 160ms;
+  line-height: 1.6;
+  text-align: right;
 }
 
-.new-user-input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+.delete-name {
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.new-user-input::placeholder { color: var(--text-tertiary); }
+.delete-warning {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  text-align: right;
+}
 
-.new-user-actions {
+.delete-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   justify-content: flex-end;
+  margin-top: 4px;
 }
 
-.new-user-cancel,
-.new-user-confirm {
-  padding: 5px 12px;
+.delete-btn {
+  padding: 7px 14px;
   border-radius: 6px;
-  font-size: clamp(11px, 1.6vw, 13px);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -331,20 +401,20 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   transition: opacity 140ms;
 }
 
-.new-user-cancel:hover,
-.new-user-confirm:hover:not(:disabled) { opacity: 0.82; }
-.new-user-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.new-user-cancel {
+.delete-btn.cancel {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
 }
 
-.new-user-confirm {
-  background: var(--accent-primary);
+.delete-btn.cancel:hover { opacity: 0.8; }
+
+.delete-btn.confirm {
+  background: var(--error-color);
   color: #fff;
 }
+
+.delete-btn.confirm:hover { opacity: 0.88; }
 
 /* Transition */
 .dropdown-enter-active,
@@ -355,5 +425,14 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-6px) scale(0.97);
+}
+
+.dialog-enter-active,
+.dialog-leave-active {
+  transition: opacity 200ms ease;
+}
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
 }
 </style>

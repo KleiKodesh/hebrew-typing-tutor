@@ -30,7 +30,7 @@
         <button @click="showSimulator = true">Debug: Hand Simulator →</button>
       </div>
 
-      <TypingPage v-if="!showSimulator" @show-intro="onShowIntroFromApp" />
+      <TypingPage v-if="!showSimulator" @show-intro="onShowIntroFromApp" @new-user="onPickNew" />
       <SimulatorPage v-else-if="debugEnabled" />
     </template>
 
@@ -46,6 +46,10 @@ import UserNameSetup from './Onboarding/UserNameSetup.vue'
 import UserPicker from './Onboarding/UserPicker.vue'
 import { DEBUG_CONFIG } from './Debug/config'
 import { useUserProfile } from './composables/useUserProfile'
+import { useDarkMode } from './composables/useDarkMode'
+
+// Initialize dark mode immediately so theme is applied to all screens
+useDarkMode()
 
 const showSimulator = ref(false)
 const debugEnabled = DEBUG_CONFIG.ENABLE_HAND_SIMULATOR
@@ -91,11 +95,16 @@ function onIntroDone() {
   screen.value = 'app'
 }
 
-// User button clicked inside the app → go back to picker (or name if no users somehow)
+// User button clicked inside the app → go to picker or name entry
 function onShowIntroFromApp() {
   if (allUsers.value.length > 1) {
     screen.value = 'picker'
+  } else if (allUsers.value.length === 1) {
+    // Only one user left, auto-login
+    switchUser(allUsers.value[0])
+    screen.value = 'app'
   } else {
+    // No users left, go to name entry
     screen.value = 'name'
   }
 }
