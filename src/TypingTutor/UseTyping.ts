@@ -31,30 +31,18 @@ export type ZoneKey = 'zone_a' | 'zone_b' | 'zone_c'
 
 // ── Zone helpers ─────────────────────────────────────────────────────────────
 
-export function getZones(lesson: Lesson): ZoneKey[] {
+function getZones(lesson: Lesson): ZoneKey[] {
   if (!lesson.exercise_zones) return ['zone_c']
   const keys: ZoneKey[] = ['zone_a', 'zone_b', 'zone_c']
   return keys.filter((k) => lesson.exercise_zones![k] !== null)
 }
 
-export function getZoneText(lesson: Lesson, zone: ZoneKey): string {
+function getZoneText(lesson: Lesson, zone: ZoneKey): string {
   return lesson.exercise_zones?.[zone] ?? ''
-}
-
-export function getZoneLabel(zone: ZoneKey): string {
-  return { zone_a: 'א', zone_b: 'ב', zone_c: 'ג' }[zone]
 }
 
 export function getZoneName(zone: ZoneKey): string {
   return { zone_a: 'הכרה', zone_b: 'מילים', zone_c: 'ערבוב' }[zone]
-}
-
-// Hebrew letter check
-const HEBREW_RE = /[\u05d0-\u05ea]/
-const AYIN = 'ע'
-
-export function countAyin(text: string): number {
-  return [...text].filter((c) => c === AYIN).length
 }
 
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
