@@ -230,10 +230,16 @@ function computeHandPos(fingerId: string, key: string, row: number, kbW: number,
   const tipYpx = (tip.y / 32) * handPx
   const targetXpx = fingerColumnFrac(fingerId, key) * kbW
   const targetYpx = rowCenterFrac(row) * kbH
-  return {
-    leftPct: ((targetXpx - tipXpx) / kbW) * 100,
-    topPct:  ((targetYpx - tipYpx) / kbH) * 100,
+  let leftPct = ((targetXpx - tipXpx) / kbW) * 100
+  let topPct  = ((targetYpx - tipYpx) / kbH) * 100
+
+  // Thumb geometry is off due to the natural resting angle — apply calibrated correction
+  if (fingerId === 'thumb') {
+    leftPct += 12.368421052631575
+    topPct  += -54.736842105263165
   }
+
+  return { leftPct, topPct }
 }
 
 // ── Finger / row maps ─────────────────────────────────────────────────────────

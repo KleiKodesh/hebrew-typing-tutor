@@ -150,6 +150,7 @@
       :last-key="lastKey"
       :held-key="heldKey"
       :next-key="nextKey"
+      :prev-key="lastKey"
       :mistake-key="mistakeKey"
     />
 
