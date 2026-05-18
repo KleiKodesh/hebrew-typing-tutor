@@ -54,6 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 
 const emit = defineEmits<{
   done: []
@@ -105,6 +106,23 @@ function prev() {
 
 function handleBackdropClick() {
   // Don't close on backdrop click
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') {
+    // Only advance if not focused on an input/textarea/button
+    const tag = (document.activeElement && document.activeElement.tagName) || ''
+    if (!['INPUT', 'TEXTAREA', 'BUTTON'].includes(tag)) {
+      next()
+    }
+  }
 }
 </script>
 
