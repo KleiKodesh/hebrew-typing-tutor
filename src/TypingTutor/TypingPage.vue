@@ -70,6 +70,7 @@
       @next-stage="goNextStage"
       @show-intro="emit('show-intro')"
       @new-user="emit('new-user')"
+      @reset-all="handleResetLesson"
     />
 
     <!-- ── Main content ── -->
@@ -77,9 +78,13 @@
 
       <!-- Lesson info card -->
       <div v-if="currentLesson?.text" class="lesson-info">
-        <div class="lesson-content">
-          <div v-if="currentLesson?.title" class="lesson-title">{{ currentLesson.title }}</div>
-          <div class="lesson-text" v-html="currentLesson.text"></div>
+        <div class="lesson-content" ref="lessonContentEl">
+          <div v-if="currentLesson?.title" class="lesson-title" :key="`title-${currentLesson.lesson_id}`">
+            {{ currentLesson.title }}
+          </div>
+          <div class="lesson-text" :key="`text-${currentLesson.lesson_id}`">
+            {{ currentLesson.text }}
+          </div>
         </div>
         <div v-if="currentLesson?.session_guidance" class="guidance-hint">
           📋 {{ currentLesson.session_guidance }}
@@ -158,16 +163,33 @@
       :mistake-key="mistakeKey"
     />
 
+    <!-- ── Reset confirmation dialog ── -->
+    <ConfirmDialog
+      :is-open="showResetConfirm"
+      cancel-label="ביטול"
+      confirm-label="מחק הכל"
+      @confirm="confirmReset"
+      @cancel="showResetConfirm = false"
+    >
+      <template #message>
+        האם אתה בטוח שברצונך למחוק את כל הנתונים?
+      </template>
+      <template #warning>
+        לא ניתן לבטל פעולה זו.
+      </template>
+    </ConfirmDialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from './KeyboardDisplay.vue'
 import HandGuide from './HandGuide.vue'
 import StatsBar from './StatsBar.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 import { useTyping, getZoneName } from './UseTyping'
 import { useUserProfile } from '../composables/useUserProfile'
 
@@ -177,6 +199,7 @@ const { userName } = useUserProfile()
 
 const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
 const freeInputRef = ref<HTMLTextAreaElement | null>(null)
+const lessonContentEl = ref<HTMLElement | null>(null)
 
 const {
   typed,
@@ -206,6 +229,7 @@ const {
   sessionSecondsDisplay,
   sessionWarning,
   sessionExpired,
+  sessionElapsedMs,
   // ayin
   ayinAccuracy,
   // summary
@@ -235,6 +259,7 @@ const {
   onInput,
   onKeyDown,
   onKeyUp,
+  clearAllProgress,
   // current target (for recall display)
   currentTarget,
 } = useTyping({ title: '', text: '' })
@@ -243,6 +268,30 @@ const {
 // (it's already returned from useTyping)
 
 function onBlur() {}
+
+// ── Reset button handler ────────────────────────────────────────────────────
+const showResetConfirm = ref(false)
+
+const handleResetLesson = () => {
+  showResetConfirm.value = true
+}
+
+const confirmReset = () => {
+  showResetConfirm.value = false
+  
+  // Clear all lesson progress and weak letter tracking
+  clearAllProgress()
+  
+  // Clear session timer data
+  const today = new Date()
+  const todayKey = `sessionTime_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  localStorage.removeItem(todayKey)
+  
+  // Reset session state
+  sessionElapsedMs.value = 0
+  sessionWarning.value = false
+  sessionExpired.value = false
+}
 
 // ── Auto-focus on lesson/zone change ────────────────────────────────────────
 const focusInput = () => {
@@ -261,15 +310,6 @@ watch(
 watch(
   () => currentZoneIndex.value,
   () => focusInput()
-)
-
-watch(
-  () => recallHidden.value,
-  (hidden) => {
-    if (hidden) {
-      focusInput()
-    }
-  }
 )
 
 // ── Personalised compliments ────────────────────────────────────────────────

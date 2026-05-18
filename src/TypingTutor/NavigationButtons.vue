@@ -33,8 +33,8 @@
       </button>
       <button
         class="reset-button"
-        @click="$emit('restart-lesson')"
-        title="אפס שיעור"
+        @click="handleReset"
+        title="אפס הכל"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M21 12a9 9 0 11-2.83-6.36" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -101,7 +101,11 @@ defineProps<{
   lessonStageLabel?: string
 }>()
 
-defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro', 'new-user'])
+const emit = defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro', 'new-user', 'reset-all'])
+
+function handleReset() {
+  emit('reset-all')
+}
 </script>
 
 <style scoped>

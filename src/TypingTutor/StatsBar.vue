@@ -14,7 +14,7 @@
       </div>
       <span class="stat-label">{{ progress }}%</span>
     </div>
-    <div v-if="ayinAccuracy !== null" class="stat" :class="{ 'ayin-warn': ayinAccuracy < 80 }">
+    <div v-if="ayinAccuracy !== null && ayinAccuracy !== undefined" class="stat" :class="{ 'ayin-warn': (ayinAccuracy ?? 100) < 80 }">
       <span class="stat-value">{{ ayinAccuracy }}%</span>
       <span class="stat-label">ע</span>
     </div>

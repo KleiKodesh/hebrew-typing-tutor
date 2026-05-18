@@ -715,5 +715,6 @@ export function useTyping(initialLesson: Lesson) {
     continueAfterExpiration,
     clearAllProgress,
     generateWeakLesson,
+    currentTarget,
   }
 }

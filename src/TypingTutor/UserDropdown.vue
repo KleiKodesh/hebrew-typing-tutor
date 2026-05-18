@@ -17,84 +17,85 @@
     </button>
 
     <!-- Dropdown panel -->
-    <transition name="dropdown">
-      <div v-if="isOpen" class="dropdown-panel" role="listbox" :aria-label="'בחר משתמש'">
-
-        <!-- Existing users -->
-        <div v-if="allUsers.length" class="dropdown-section">
-          <div class="dropdown-section-label">משתמשים</div>
-          <button
-            v-for="user in allUsers"
-            :key="user"
-            class="dropdown-item"
-            :class="{ active: user === userName }"
-            role="option"
-            :aria-selected="user === userName"
-            @click="selectUser(user)"
-          >
-            <span class="item-initial">{{ user[0] }}</span>
-            <span class="item-name">{{ user }}</span>
-            <svg v-if="user === userName" class="item-check" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <button
-              class="item-delete"
-              @click="handleDeleteUser($event, user)"
-              title="מחק משתמש"
-              aria-label="מחק משתמש"
-            >
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M19 6L5 20M5 6L19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </button>
-        </div>
-
-        <div v-if="allUsers.length" class="dropdown-divider" />
-
-        <!-- Add new user -->
-        <div class="dropdown-section">
-          <button
-            class="dropdown-item new-user-btn"
-            @click="submitNewUser"
-          >
-            <svg class="item-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M19 8v6M16 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            <span>משתמש חדש</span>
-          </button>
-        </div>
-
-      </div>
-    </transition>
-
-    <!-- Delete confirmation dialog -->
     <Teleport to="body">
-      <transition name="dialog">
-        <div v-if="deleteConfirmUser" class="delete-backdrop" @click.self="deleteConfirmUser = null">
-          <div class="delete-dialog">
-            <div class="delete-message">
-              <span>האם אתה בטוח שברצונך למחוק את </span>
-              <span class="delete-name">{{ deleteConfirmUser }}</span>
-              <span>?</span>
-            </div>
-            <div class="delete-warning">כל הנתונים שלו יימחקו.</div>
-            <div class="delete-actions">
-              <button class="delete-btn cancel" @click="deleteConfirmUser = null">ביטול</button>
-              <button class="delete-btn confirm" @click="confirmDelete">מחק</button>
-            </div>
+      <transition name="dropdown">
+        <div v-if="isOpen" class="dropdown-panel" role="listbox" :aria-label="'בחר משתמש'" :style="dropdownStyle" @click.self="close">
+
+          <!-- Existing users -->
+          <div v-if="allUsers.length" class="dropdown-section">
+            <div class="dropdown-section-label">משתמשים</div>
+            <button
+              v-for="user in allUsers"
+              :key="user"
+              class="dropdown-item"
+              :class="{ active: user === userName }"
+              role="option"
+              :aria-selected="user === userName"
+              @click="selectUser(user)"
+            >
+              <span class="item-initial">{{ user[0] }}</span>
+              <span class="item-name">{{ user }}</span>
+              <svg v-if="user === userName" class="item-check" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <button
+                class="item-delete"
+                @click="handleDeleteUser($event, user)"
+                title="מחק משתמש"
+                aria-label="מחק משתמש"
+              >
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M19 6L5 20M5 6L19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </button>
           </div>
+
+          <div v-if="allUsers.length" class="dropdown-divider" />
+
+          <!-- Add new user -->
+          <div class="dropdown-section">
+            <button
+              class="dropdown-item new-user-btn"
+              @click="submitNewUser"
+            >
+              <svg class="item-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 8v6M16 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <span>משתמש חדש</span>
+            </button>
+          </div>
+
         </div>
       </transition>
     </Teleport>
+
+    <!-- Delete confirmation dialog -->
+    <ConfirmDialog
+      :is-open="!!deleteConfirmUser"
+      cancel-label="ביטול"
+      confirm-label="מחק"
+      @confirm="confirmDelete"
+      @cancel="deleteConfirmUser = null"
+    >
+      <template #message>
+        <span>האם אתה בטוח שברצונך למחוק את </span>
+        <span class="delete-name">{{ deleteConfirmUser }}</span>
+        <span>?</span>
+      </template>
+      <template #warning>
+        כל הנתונים שלו יימחקו.
+      </template>
+    </ConfirmDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useUserProfile } from '../composables/useUserProfile'
+import ConfirmDialog from './ConfirmDialog.vue'
 
 const emit = defineEmits<{
   'new-user': []
@@ -106,10 +107,24 @@ const { userName, allUsers, switchUser, deleteUser } = useUserProfile()
 const isOpen = ref(false)
 const wrapEl = ref<HTMLElement | null>(null)
 const deleteConfirmUser = ref<string | null>(null)
+const dropdownStyle = ref<{ top: string; left: string }>({ top: '0', left: '0' })
+
+function updateDropdownPosition() {
+  if (!wrapEl.value) return
+  const rect = wrapEl.value.getBoundingClientRect()
+  dropdownStyle.value = {
+    top: `${rect.bottom + 6}px`,
+    left: `${rect.left}px`,
+  }
+}
 
 function toggle() {
   isOpen.value = !isOpen.value
-  if (!isOpen.value) resetForm()
+  if (isOpen.value) {
+    nextTick(() => updateDropdownPosition())
+  } else {
+    resetForm()
+  }
 }
 
 function close() {
@@ -213,16 +228,15 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
 
 /* Panel */
 .dropdown-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 200px;
+  position: fixed;
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  z-index: 400;
+  z-index: 1000;
   overflow: hidden;
+  min-width: 200px;
+  max-width: 300px;
 }
 
 .dropdown-section {
@@ -333,88 +347,10 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
 }
 
 /* Delete confirmation dialog */
-.delete-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.delete-dialog {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 20px 24px;
-  max-width: 300px;
-  width: 90%;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  animation: dialogIn 200ms cubic-bezier(0.1, 0.9, 0.2, 1);
-}
-
-@keyframes dialogIn {
-  from { opacity: 0; transform: scale(0.95) translateY(-8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.delete-message {
-  font-size: 14px;
-  color: var(--text-primary);
-  line-height: 1.6;
-  text-align: right;
-}
-
 .delete-name {
   font-weight: 700;
   color: var(--text-primary);
 }
-
-.delete-warning {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
-  text-align: right;
-}
-
-.delete-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 4px;
-}
-
-.delete-btn {
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  transition: opacity 140ms;
-}
-
-.delete-btn.cancel {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
-
-.delete-btn.cancel:hover { opacity: 0.8; }
-
-.delete-btn.confirm {
-  background: var(--error-color);
-  color: #fff;
-}
-
-.delete-btn.confirm:hover { opacity: 0.88; }
 
 /* Transition */
 .dropdown-enter-active,
@@ -425,14 +361,5 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-6px) scale(0.97);
-}
-
-.dialog-enter-active,
-.dialog-leave-active {
-  transition: opacity 200ms ease;
-}
-.dialog-enter-from,
-.dialog-leave-to {
-  opacity: 0;
 }
 </style>
