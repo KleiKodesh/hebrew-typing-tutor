@@ -13,16 +13,29 @@
 
         <div class="current-key-box" v-if="currentKey">
           <div class="key-value">{{ currentKey === ' ' ? 'Space' : currentKey }}</div>
-          <div class="key-meta">{{ currentFinger }} &nbsp;·&nbsp; {{ currentRowLabel }} row</div>
+          <div class="key-meta">
+            <template v-if="currentKey === ' '">left-thumb &amp; right-thumb &nbsp;·&nbsp; Space row</template>
+            <template v-else>{{ currentFinger }} &nbsp;·&nbsp; {{ currentRowLabel }} row</template>
+          </div>
         </div>
 
-        <div class="offset-box" v-if="currentKey && isDragged">
+        <div class="offset-box" v-if="currentKey !== ' ' && currentKey && isDragged">
           <span>Δh: <strong>{{ deltaH.toFixed(2) }}%</strong></span>
           <span>Δv: <strong>{{ deltaV.toFixed(2) }}%</strong></span>
         </div>
 
-        <button class="save-btn" v-if="currentKey" @click="saveAdjustment" :class="{ saved: !isDragged }">
-          {{ isDragged ? '✓ Save (or Enter)' : '✓ Saved' }}
+        <!-- Space: show deltas for both thumbs -->
+        <div class="offset-box" v-if="currentKey === ' '">
+          <span>Left Δh: <strong>{{ spaceLeftDeltaH.toFixed(2) }}%</strong></span>
+          <span>Left Δv: <strong>{{ spaceLeftDeltaV.toFixed(2) }}%</strong></span>
+        </div>
+        <div class="offset-box" v-if="currentKey === ' '">
+          <span>Right Δh: <strong>{{ spaceRightDeltaH.toFixed(2) }}%</strong></span>
+          <span>Right Δv: <strong>{{ spaceRightDeltaV.toFixed(2) }}%</strong></span>
+        </div>
+
+        <button class="save-btn" v-if="currentKey" @click="saveAdjustment" :class="{ saved: currentKey !== ' ' && !isDragged }">
+          {{ currentKey !== ' ' && !isDragged ? '✓ Saved' : '✓ Save (or Enter)' }}
         </button>
 
         <div class="saved-list" v-if="savedAdjustments.length">
@@ -56,12 +69,16 @@
           :unconstrained="true"
         />
 
+        <!-- Overlay container — positioned to exactly cover the .keyboard element -->
+        <div class="overlay-container" ref="overlayContainer">
+
+        <!-- Single hand for normal keys -->
         <div
-          v-if="currentKey && currentFinger"
+          v-if="currentKey && currentKey !== ' ' && currentFinger"
           class="hand-overlay"
           :style="handStyle"
-          @mousedown="startDrag"
-          @touchstart.prevent="startDrag"
+          @mousedown="startDrag('single', $event)"
+          @touchstart.prevent="startDrag('single', $event)"
         >
           <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
             <path
@@ -71,6 +88,35 @@
             />
           </svg>
         </div>
+
+        <!-- Space: left thumb (orange) + right thumb (blue), each independently draggable -->
+        <template v-if="currentKey === ' '">
+          <div
+            class="hand-overlay"
+            :style="spaceLeftStyle"
+            @mousedown="startDrag('space-left', $event)"
+            @touchstart.prevent="startDrag('space-left', $event)"
+          >
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
+              <path class="hand-base hand-left" transform="scale(-1,1) translate(-32,0)"
+                d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
+              />
+            </svg>
+          </div>
+          <div
+            class="hand-overlay"
+            :style="spaceRightStyle"
+            @mousedown="startDrag('space-right', $event)"
+            @touchstart.prevent="startDrag('space-right', $event)"
+          >
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" class="hand-svg">
+              <path class="hand-base"
+                d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"
+              />
+            </svg>
+          </div>
+        </template>
+        </div><!-- end overlay-container -->
       </div>
       <div class="focus-hint" v-if="!hasFocus">Click here to start typing</div>
     </div>
@@ -85,19 +131,26 @@ import KeyboardDisplay from '../TypingTutor/KeyboardDisplay.vue'
 const keyboardWrapper = ref<HTMLElement>()
 const hasFocus = ref(false)
 
-// The actual .keyboard element rendered inside KeyboardDisplay
-const kbEl = ref<HTMLElement | null>(null)
-// keyboard size only (not position — we'll compute offset at render time)
-const kbSize = ref({ width: 0, height: 0 })
+// overlayContainer is positioned to exactly cover the .keyboard element inside KeyboardDisplay
+// so that left/top % values match KeyboardDisplay's coordinate system exactly
+const overlayContainer = ref<HTMLElement>()
 
-function measureKb() {
-  if (!keyboardWrapper.value) return
-  const el = keyboardWrapper.value.querySelector('.keyboard') as HTMLElement | null
-  if (!el) return
-  kbEl.value = el
-  const r = el.getBoundingClientRect()
-  kbSize.value = { width: r.width, height: r.height }
+function positionOverlay() {
+  if (!keyboardWrapper.value || !overlayContainer.value) return
+  const kb = keyboardWrapper.value.querySelector('.keyboard') as HTMLElement | null
+  if (!kb) return
+  const kbRect = kb.getBoundingClientRect()
+  const wrapRect = keyboardWrapper.value.getBoundingClientRect()
+  overlayContainer.value.style.left   = `${kbRect.left - wrapRect.left}px`
+  overlayContainer.value.style.top    = `${kbRect.top  - wrapRect.top}px`
+  overlayContainer.value.style.width  = `${kbRect.width}px`
+  overlayContainer.value.style.height = `${kbRect.height}px`
+  // Also update kbSize for drag delta calculations
+  kbSize.value = { width: kbRect.width, height: kbRect.height }
 }
+
+// keyboard size for drag delta calculations
+const kbSize = ref({ width: 0, height: 0 })
 
 let ro: ResizeObserver | null = null
 
@@ -105,8 +158,8 @@ onMounted(() => {
   keyboardWrapper.value?.focus()
   hasFocus.value = true
   nextTick(() => {
-    measureKb()
-    ro = new ResizeObserver(measureKb)
+    positionOverlay()
+    ro = new ResizeObserver(positionOverlay)
     if (keyboardWrapper.value) ro.observe(keyboardWrapper.value)
   })
 })
@@ -129,9 +182,16 @@ function onKeyDown(e: KeyboardEvent) {
 
   // Escape = discard drag, reset to calculated
   if (e.key === 'Escape') {
-    isDragged.value = false
-    dragLeft.value = calculatedLeft.value
-    dragTop.value  = calculatedTop.value
+    if (currentKey.value === ' ') {
+      spaceLeftLeft.value  = spaceCalcLeft.value.leftPct
+      spaceLeftTop.value   = spaceCalcLeft.value.topPct
+      spaceRightLeft.value = spaceCalcRight.value.leftPct
+      spaceRightTop.value  = spaceCalcRight.value.topPct
+    } else {
+      isDragged.value = false
+      dragLeft.value = calculatedLeft.value
+      dragTop.value  = calculatedTop.value
+    }
     return
   }
 
@@ -205,7 +265,9 @@ function keyCenterFrac(row: string[], targetKey: string): number {
 }
 
 function fingerColumnFrac(fingerId: string, key: string): number {
-  if (fingerId === 'thumb') return keyCenterFrac(spaceRow, 'Space')
+  if (fingerId === 'thumb' || fingerId === 'left-thumb' || fingerId === 'right-thumb') {
+    return keyCenterFrac(spaceRow, 'Space')
+  }
   // Find the actual key in the correct keyboard row
   const row = keyRowHE[key] ?? 2
   const keyboardRow = keyboardHE[row]
@@ -233,8 +295,12 @@ function computeHandPos(fingerId: string, key: string, row: number, kbW: number,
   let leftPct = ((targetXpx - tipXpx) / kbW) * 100
   let topPct  = ((targetYpx - tipYpx) / kbH) * 100
 
-  // Thumb geometry is off due to the natural resting angle — apply calibrated correction
-  if (fingerId === 'thumb') {
+  // Absolute calibrated position for thumbs — overrides geometry calculation entirely
+  if (fingerId === 'left-thumb') {
+    return { leftPct: 18.89356060606061, topPct: 10.80415584415583 }
+  } else if (fingerId === 'right-thumb') {
+    return { leftPct: 53.50687229437229, topPct: 14.267359307359285 }
+  } else if (fingerId === 'thumb') {
     leftPct += 12.368421052631575
     topPct  += -54.736842105263165
   }
@@ -309,25 +375,54 @@ const dragLeft = ref(0)
 const dragTop  = ref(0)
 const isDragged = ref(false)
 
+// Space key: separate drag state for each thumb
+const spaceLeftLeft  = ref(0)
+const spaceLeftTop   = ref(0)
+const spaceRightLeft = ref(0)
+const spaceRightTop  = ref(0)
+const spaceDragging  = ref<'space-left' | 'space-right' | null>(null)
+
+const spaceCalcLeft  = computed(() => computeHandPos('left-thumb',  ' ', 4, kbSize.value.width, kbSize.value.height))
+const spaceCalcRight = computed(() => computeHandPos('right-thumb', ' ', 4, kbSize.value.width, kbSize.value.height))
+
+const spaceLeftDeltaH  = computed(() => spaceLeftLeft.value  - spaceCalcLeft.value.leftPct)
+const spaceLeftDeltaV  = computed(() => spaceLeftTop.value   - spaceCalcLeft.value.topPct)
+const spaceRightDeltaH = computed(() => spaceRightLeft.value - spaceCalcRight.value.leftPct)
+const spaceRightDeltaV = computed(() => spaceRightTop.value  - spaceCalcRight.value.topPct)
+
+function pctStyle(leftPct: number, topPct: number) {
+  // Use % positioning relative to the .keyboard element — same as KeyboardDisplay
+  // so calibrated deltas are directly transferable
+  return {
+    left:      `${leftPct}%`,
+    top:       `${topPct}%`,
+    width:     `${HAND_W * 100}%`,
+    transform: 'none',
+    bottom:    'auto',
+  }
+}
+
+const spaceLeftStyle  = computed(() => pctStyle(spaceLeftLeft.value,  spaceLeftTop.value))
+const spaceRightStyle = computed(() => pctStyle(spaceRightLeft.value, spaceRightTop.value))
+
 function setKey(k: string) {
   currentKey.value = k
   isDragged.value = false
   dragLeft.value = calculatedLeft.value
   dragTop.value  = calculatedTop.value
+  if (k === ' ') {
+    spaceLeftLeft.value  = spaceCalcLeft.value.leftPct
+    spaceLeftTop.value   = spaceCalcLeft.value.topPct
+    spaceRightLeft.value = spaceCalcRight.value.leftPct
+    spaceRightTop.value  = spaceCalcRight.value.topPct
+  }
 }
 
 const handStyle = computed(() => {
-  if (!kbEl.value || kbSize.value.width === 0) return {}
-  // kbEl.value.offsetLeft/Top gives position relative to its offset parent (.keyboard-wrapper)
-  const kbOffsetLeft = kbEl.value.offsetLeft
-  const kbOffsetTop  = kbEl.value.offsetTop
-  const leftPx  = kbOffsetLeft + (dragLeft.value / 100) * kbSize.value.width
-  const topPx   = kbOffsetTop  + (dragTop.value  / 100) * kbSize.value.height
-  const widthPx = HAND_W * kbSize.value.width
   return {
-    left:      `${leftPx}px`,
-    top:       `${topPx}px`,
-    width:     `${widthPx}px`,
+    left:      `${dragLeft.value}%`,
+    top:       `${dragTop.value}%`,
+    width:     `${HAND_W * 100}%`,
     transform: 'none',
     bottom:    'auto',
   }
@@ -338,14 +433,21 @@ const deltaV = computed(() => dragTop.value  - calculatedTop.value)
 
 let dragging = false
 let startX = 0, startY = 0, startLeft = 0, startTop = 0
+let dragMode: 'single' | 'space-left' | 'space-right' = 'single'
 
-function startDrag(e: MouseEvent | TouchEvent) {
+function startDrag(mode: 'single' | 'space-left' | 'space-right', e: MouseEvent | TouchEvent) {
   dragging = true
+  dragMode = mode
   const cx = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX
   const cy = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY
   startX = cx; startY = cy
-  startLeft = dragLeft.value; startTop = dragTop.value
-
+  if (mode === 'single') {
+    startLeft = dragLeft.value; startTop = dragTop.value
+  } else if (mode === 'space-left') {
+    startLeft = spaceLeftLeft.value; startTop = spaceLeftTop.value
+  } else {
+    startLeft = spaceRightLeft.value; startTop = spaceRightTop.value
+  }
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('touchmove', onDrag, { passive: false })
   document.addEventListener('mouseup', stopDrag)
@@ -357,10 +459,19 @@ function onDrag(e: MouseEvent | TouchEvent) {
   e.preventDefault()
   const cx = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX
   const cy = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY
-  // Deltas in keyboard-relative %
-  dragLeft.value = startLeft + ((cx - startX) / kbSize.value.width)  * 100
-  dragTop.value  = startTop  + ((cy - startY) / kbSize.value.height) * 100
-  isDragged.value = true
+  const dx = ((cx - startX) / kbSize.value.width)  * 100
+  const dy = ((cy - startY) / kbSize.value.height) * 100
+  if (dragMode === 'single') {
+    dragLeft.value = startLeft + dx
+    dragTop.value  = startTop  + dy
+    isDragged.value = true
+  } else if (dragMode === 'space-left') {
+    spaceLeftLeft.value = startLeft + dx
+    spaceLeftTop.value  = startTop  + dy
+  } else {
+    spaceRightLeft.value = startLeft + dx
+    spaceRightTop.value  = startTop  + dy
+  }
 }
 
 function stopDrag() {
@@ -388,6 +499,36 @@ interface Adjustment {
 const savedAdjustments = ref<Adjustment[]>([])
 
 function saveAdjustment() {
+  if (currentKey.value === ' ') {
+    // Save both thumbs separately
+    const entries: Adjustment[] = [
+      {
+        finger: 'left-thumb', row: 4, rowLabel: 'Space', key: ' ',
+        calculatedLeft: spaceCalcLeft.value.leftPct,
+        calculatedTop:  spaceCalcLeft.value.topPct,
+        draggedLeft:    spaceLeftLeft.value,
+        draggedTop:     spaceLeftTop.value,
+        deltaH:         spaceLeftDeltaH.value,
+        deltaV:         spaceLeftDeltaV.value,
+      },
+      {
+        finger: 'right-thumb', row: 4, rowLabel: 'Space', key: ' ',
+        calculatedLeft: spaceCalcRight.value.leftPct,
+        calculatedTop:  spaceCalcRight.value.topPct,
+        draggedLeft:    spaceRightLeft.value,
+        draggedTop:     spaceRightTop.value,
+        deltaH:         spaceRightDeltaH.value,
+        deltaV:         spaceRightDeltaV.value,
+      },
+    ]
+    for (const adj of entries) {
+      const idx = savedAdjustments.value.findIndex(a => a.finger === adj.finger && a.row === adj.row)
+      if (idx >= 0) savedAdjustments.value[idx] = adj
+      else savedAdjustments.value.push(adj)
+    }
+    return
+  }
+
   const adj: Adjustment = {
     finger:         currentFinger.value,
     row:            currentRow.value,
@@ -605,6 +746,12 @@ kbd {
 }
 .hand-overlay:active { cursor: grabbing; }
 
+.overlay-container {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
 .hand-svg {
   width: 100%;
   height: auto;
@@ -614,6 +761,11 @@ kbd {
 
 .hand-base {
   fill: #0078d4;
+  opacity: 0.55;
+}
+
+.hand-left {
+  fill: #e05c00;
   opacity: 0.55;
 }
 </style>

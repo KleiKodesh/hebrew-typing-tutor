@@ -35,9 +35,16 @@ export default defineConfig(({ command }) => {
                     fs.mkdirSync(offsetsDir, { recursive: true })
                   }
                   const entries = Array.isArray(data.adjustments) ? data.adjustments : [data]
+                  const publicOffsetsDir = path.join(process.cwd(), 'public', 'hand-offsets')
+                  if (!fs.existsSync(publicOffsetsDir)) {
+                    fs.mkdirSync(publicOffsetsDir, { recursive: true })
+                  }
                   entries.forEach((entry: any) => {
-                    const filePath = path.join(offsetsDir, entry.finger + '_row' + entry.row + '.json')
-                    fs.writeFileSync(filePath, JSON.stringify(entry, null, 2))
+                    const fileName = entry.finger + '_row' + entry.row + '.json'
+                    // Write to hand-offsets/ (source of truth)
+                    fs.writeFileSync(path.join(offsetsDir, fileName), JSON.stringify(entry, null, 2))
+                    // Also write to public/hand-offsets/ so Vite serves it at runtime
+                    fs.writeFileSync(path.join(publicOffsetsDir, fileName), JSON.stringify(entry, null, 2))
                   })
                   res.writeHead(200, { 'Content-Type': 'application/json' })
                   res.end(JSON.stringify({ success: true, saved: entries.length }))

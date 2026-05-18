@@ -241,7 +241,9 @@ const homeRowEN = ['Caps', 'a',  's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';:', '
 const spaceRow  = ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl']
 
 function fingerColumnFrac(fingerId: string, key: string, isHebrew: boolean): number {
-  if (fingerId === 'thumb') return keyCenterFrac(spaceRow, 'Space')
+  if (fingerId === 'thumb' || fingerId === 'left-thumb' || fingerId === 'right-thumb') {
+    return keyCenterFrac(spaceRow, 'Space')
+  }
   // Look up the actual key's column in its keyboard row first
   const rowMap = isHebrew ? keyRowHE : keyRowEN
   const rowIdx = rowMap[key] ?? 2
@@ -269,8 +271,14 @@ function computeHandPos(fingerId: string, key: string, row: number, isHebrew: bo
   let leftPct = ((targetXpx - tipXpx) / kbW) * 100
   let topPct  = ((targetYpx - tipYpx) / kbH) * 100
 
-  // Thumb geometry is off due to the natural resting angle — apply calibrated correction
-  if (fingerId === 'thumb') {
+  // Apply per-side thumb correction from calibration data
+  if (fingerId === 'left-thumb') {
+    // Absolute calibrated position — overrides the geometry calculation entirely
+    return { leftPct: 18.89356060606061, topPct: 10.80415584415583 }
+  } else if (fingerId === 'right-thumb') {
+    return { leftPct: 53.50687229437229, topPct: 14.267359307359285 }
+  } else if (fingerId === 'thumb') {
+    // legacy fallback
     leftPct += 12.368421052631575
     topPct  += -54.736842105263165
   }
