@@ -75,12 +75,15 @@
           <path d="M12 2V4M12 20V22M2 12H4M20 12H22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+      <!-- User dropdown -->
+      <UserDropdown @show-intro="$emit('show-intro')" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useDarkMode } from '../composables/useDarkMode'
+import UserDropdown from './UserDropdown.vue'
 
 const { isDarkMode, toggleDarkMode } = useDarkMode()
 
@@ -98,7 +101,7 @@ defineProps<{
   lessonStageLabel?: string
 }>()
 
-defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage'])
+defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro'])
 </script>
 
 <style scoped>

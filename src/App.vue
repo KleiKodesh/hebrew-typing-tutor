@@ -1,14 +1,39 @@
 <template>
   <div class="app">
-    <div v-if="debugEnabled && showSimulator" class="mode-toggle">
-      <button @click="showSimulator = false">← Back to Tutor</button>
-    </div>
-    <div v-else-if="debugEnabled" class="mode-toggle">
-      <button @click="showSimulator = true">Debug: Hand Simulator →</button>
-    </div>
 
-    <TypingPage v-if="!showSimulator" />
-    <SimulatorPage v-else-if="debugEnabled" />
+    <!-- Step 1 (2+ users): pick an existing user or start new -->
+    <UserPicker
+      v-if="screen === 'picker'"
+      @select="onPickUser"
+      @new="onPickNew"
+    />
+
+    <!-- Step 2 (new user): enter name -->
+    <UserNameSetup
+      v-else-if="screen === 'name'"
+      @done="onNameDone"
+    />
+
+    <!-- Step 3 (new user): intro slides -->
+    <IntroSlides
+      v-else-if="screen === 'intro'"
+      @done="onIntroDone"
+      @skip="onIntroDone"
+    />
+
+    <!-- Main app -->
+    <template v-else>
+      <div v-if="debugEnabled && showSimulator" class="mode-toggle">
+        <button @click="showSimulator = false">← Back to Tutor</button>
+      </div>
+      <div v-else-if="debugEnabled" class="mode-toggle">
+        <button @click="showSimulator = true">Debug: Hand Simulator →</button>
+      </div>
+
+      <TypingPage v-if="!showSimulator" @show-intro="onShowIntroFromApp" />
+      <SimulatorPage v-else-if="debugEnabled" />
+    </template>
+
   </div>
 </template>
 
@@ -16,10 +41,64 @@
 import { ref } from 'vue'
 import TypingPage from './TypingTutor/TypingPage.vue'
 import SimulatorPage from './TypingTutor/SimulatorPage.vue'
+import IntroSlides from './Onboarding/IntroSlides.vue'
+import UserNameSetup from './Onboarding/UserNameSetup.vue'
+import UserPicker from './Onboarding/UserPicker.vue'
 import { DEBUG_CONFIG } from './Debug/config'
+import { useUserProfile } from './composables/useUserProfile'
 
 const showSimulator = ref(false)
 const debugEnabled = DEBUG_CONFIG.ENABLE_HAND_SIMULATOR
+
+const { allUsers, userName, switchUser, setUserName, markIntroSeen } = useUserProfile()
+
+// ── Determine initial screen ────────────────────────────────────────────────
+type Screen = 'picker' | 'name' | 'intro' | 'app'
+
+function initialScreen(): Screen {
+  if (allUsers.value.length === 0) return 'name'       // no users yet → ask for name
+  if (allUsers.value.length === 1) {                   // exactly one user → auto-login
+    switchUser(allUsers.value[0])
+    return 'app'
+  }
+  return 'picker'                                       // multiple users → let them choose
+}
+
+const screen = ref<Screen>(initialScreen())
+
+// ── Handlers ────────────────────────────────────────────────────────────────
+
+// User picked an existing user from the picker
+function onPickUser(name: string) {
+  switchUser(name)
+  screen.value = 'app'
+}
+
+// User chose "new user" from the picker
+function onPickNew() {
+  screen.value = 'name'
+}
+
+// Name entered → show intro for new users
+function onNameDone(name: string) {
+  setUserName(name)
+  screen.value = 'intro'
+}
+
+// Intro finished
+function onIntroDone() {
+  markIntroSeen()
+  screen.value = 'app'
+}
+
+// User button clicked inside the app → go back to picker (or name if no users somehow)
+function onShowIntroFromApp() {
+  if (allUsers.value.length > 1) {
+    screen.value = 'picker'
+  } else {
+    screen.value = 'name'
+  }
+}
 </script>
 
 <style>

@@ -25,7 +25,7 @@
     <!-- ── Lesson completion summary ── -->
     <div v-if="showSummary" class="summary-overlay">
       <div class="summary-box">
-        <div class="summary-title">✓ שיעור הושלם</div>
+        <div class="summary-title">{{ summaryTitle }}</div>
         <div class="summary-stats">
           <div class="summary-stat">
             <span class="summary-stat-value">{{ summaryData?.accuracy }}%</span>
@@ -68,6 +68,7 @@
       @restart-lesson="restartLesson"
       @next-lesson="goNextLesson"
       @next-stage="goNextStage"
+      @show-intro="emit('show-intro')"
     />
 
     <!-- ── Main content ── -->
@@ -165,6 +166,11 @@ import KeyboardDisplay from './KeyboardDisplay.vue'
 import HandGuide from './HandGuide.vue'
 import StatsBar from './StatsBar.vue'
 import { useTyping, getZoneName } from './UseTyping'
+import { useUserProfile } from '../composables/useUserProfile'
+
+const emit = defineEmits<{ 'show-intro': [] }>()
+
+const { userName } = useUserProfile()
 
 const {
   typed,
@@ -231,6 +237,21 @@ const {
 // (it's already returned from useTyping)
 
 function onBlur() {}
+
+// ── Personalised compliments ────────────────────────────────────────────────
+const complimentMessages = [
+  'כל הכבוד',
+  'עבודה מצוינת',
+  'מדהים',
+  'יופי של עבודה',
+  'ממשיכים קדימה',
+  'מושלם',
+]
+
+const summaryTitle = computed(() => {
+  const base = complimentMessages[Math.floor(Math.random() * complimentMessages.length)]
+  return userName.value ? `${base}, ${userName.value}! ✓` : `✓ שיעור הושלם`
+})
 </script>
 
 <style>
