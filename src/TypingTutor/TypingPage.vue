@@ -110,6 +110,7 @@
       <!-- Free mode: no target, just a textarea -->
       <div v-else-if="exerciseMode === 'free'" class="free-panel">
         <textarea
+          ref="freeInputRef"
           class="free-input"
           v-model="typed"
           @input="onInput"
@@ -123,6 +124,7 @@
 
       <!-- Copy / recall-hidden mode: exercise strip + input strip -->
       <InputArea
+        ref="inputAreaRef"
         v-else
         :model-value="typed"
         :display-text="displayText"
@@ -160,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from './KeyboardDisplay.vue'
@@ -172,6 +174,9 @@ import { useUserProfile } from '../composables/useUserProfile'
 const emit = defineEmits<{ 'show-intro': []; 'new-user': [] }>()
 
 const { userName } = useUserProfile()
+
+const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
+const freeInputRef = ref<HTMLTextAreaElement | null>(null)
 
 const {
   typed,
@@ -238,6 +243,34 @@ const {
 // (it's already returned from useTyping)
 
 function onBlur() {}
+
+// ── Auto-focus on lesson/zone change ────────────────────────────────────────
+const focusInput = () => {
+  if (exerciseMode.value === 'free') {
+    freeInputRef.value?.focus()
+  } else {
+    inputAreaRef.value?.focusInput()
+  }
+}
+
+watch(
+  () => currentLesson.value?.lesson_id,
+  () => focusInput()
+)
+
+watch(
+  () => currentZoneIndex.value,
+  () => focusInput()
+)
+
+watch(
+  () => recallHidden.value,
+  (hidden) => {
+    if (hidden) {
+      focusInput()
+    }
+  }
+)
 
 // ── Personalised compliments ────────────────────────────────────────────────
 const complimentMessages = [

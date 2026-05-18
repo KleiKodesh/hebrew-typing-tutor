@@ -14,6 +14,7 @@
     </div>
     <textarea
       id="typing-input"
+      ref="inputEl"
       class="fluent-input"
       :value="modelValue"
       @input="onInput"
@@ -42,6 +43,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur'])
 
+const inputEl = ref<HTMLTextAreaElement | null>(null)
+
 function onInput(e: Event) {
   emit('update:modelValue', (e.target as HTMLTextAreaElement).value)
   emit('input', e)
@@ -50,6 +53,14 @@ function onInput(e: Event) {
 function onKeyDown(e: KeyboardEvent) { emit('keydown', e) }
 function onKeyUp(e: KeyboardEvent)   { emit('keyup', e) }
 function onBlur()                    { emit('blur') }
+
+// ── Focus management ──────────────────────────────────────────────────────────
+const focusInput = async () => {
+  await nextTick()
+  inputEl.value?.focus()
+}
+
+defineExpose({ focusInput })
 
 // ── Tunnel scrolling ──────────────────────────────────────────────────────────
 const tunnelEl = ref<HTMLElement | null>(null)
@@ -99,12 +110,12 @@ watch(
 }
 
 .sample-hidden {
-  font-size: clamp(10px, 1.5vw, 12px);
+  font-size: clamp(13px, 2vw, 16px);
   color: var(--text-tertiary);
-  padding: 6px 8px;
+  padding: 12px 16px;
   font-style: italic;
   text-align: center;
-  height: clamp(22px, 3.5vw, 28px);
+  height: clamp(48px, 8vw, 64px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,9 +131,9 @@ watch(
 /* ── Tunnel strip ── */
 .tunnel {
   color: var(--text-secondary);
-  font-size: clamp(11px, 1.8vw, 14px);
-  padding: clamp(4px, 0.8vw, 7px) clamp(6px, 1.2vw, 10px);
-  height: clamp(22px, 3.5vw, 28px);
+  font-size: clamp(14px, 2.2vw, 18px);
+  padding: clamp(10px, 1.5vw, 14px) clamp(12px, 2vw, 16px);
+  height: clamp(48px, 8vw, 64px);
   overflow-x: scroll;
   overflow-y: hidden;
   scroll-behavior: smooth;
@@ -137,11 +148,11 @@ watch(
 
 .fluent-input {
   width: 100%;
-  height: clamp(28px, 5vw, 36px);
+  height: clamp(56px, 10vw, 80px);
   resize: none;
-  padding: clamp(5px, 1vw, 8px) clamp(6px, 1.2vw, 10px);
-  font-size: clamp(11px, 1.8vw, 14px);
-  line-height: 1.4;
+  padding: clamp(12px, 2vw, 16px) clamp(12px, 2vw, 16px);
+  font-size: clamp(16px, 2.5vw, 20px);
+  line-height: 1.5;
   border-radius: 0 0 8px 8px;
   border: none;
   border-top: 1px solid var(--border-subtle);
