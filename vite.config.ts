@@ -1,21 +1,32 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { viteSingleFile } from 'vite-plugin-singlefile'
 import fs from 'fs'
 import path from 'path'
+import { inlineStages } from './plugins/inlineStages'
 
-export default defineConfig({
-  plugins: [
-    vue(),
-    {
-      name: 'hand-offsets-api',
-      configureServer(server) {
-        return () => {
-          server.middlewares.use('/api/save-hand-offsets', (req, res, next) => {
-            if (req.method === 'POST') {
+export default defineConfig(({ command }) => {
+  const isBuild = command === 'build'
+
+  return {
+    plugins: [
+      vue(),
+
+      // Provides virtual:stages — inlined JSON at build, fetch() in dev
+      inlineStages(isBuild),
+
+      // Inline all JS/CSS into a single HTML file (build only)
+      ...(isBuild ? [viteSingleFile()] : []),
+
+      // Dev-only: API endpoint for saving hand-offset calibration data
+      {
+        name: 'hand-offsets-api',
+        configureServer(server) {
+          return () => {
+            server.middlewares.use('/api/save-hand-offsets', (req, res, next) => {
+              if (req.method !== 'POST') { next(); return }
               let body = ''
-              req.on('data', chunk => {
-                body += chunk.toString()
-              })
+              req.on('data', (chunk) => { body += chunk.toString() })
               req.on('end', () => {
                 try {
                   const data = JSON.parse(body)
@@ -23,15 +34,11 @@ export default defineConfig({
                   if (!fs.existsSync(offsetsDir)) {
                     fs.mkdirSync(offsetsDir, { recursive: true })
                   }
-
-                  // Handle both single entry and array of adjustments
                   const entries = Array.isArray(data.adjustments) ? data.adjustments : [data]
                   entries.forEach((entry: any) => {
-                    const filename = `${entry.finger}_row${entry.row}.json`
-                    const filePath = path.join(offsetsDir, filename)
+                    const filePath = path.join(offsetsDir, entry.finger + '_row' + entry.row + '.json')
                     fs.writeFileSync(filePath, JSON.stringify(entry, null, 2))
                   })
-
                   res.writeHead(200, { 'Content-Type': 'application/json' })
                   res.end(JSON.stringify({ success: true, saved: entries.length }))
                 } catch (err) {
@@ -39,15 +46,16 @@ export default defineConfig({
                   res.end(JSON.stringify({ success: false, error: String(err) }))
                 }
               })
-            } else {
-              next()
-            }
-          })
-        }
-      }
-    }
-  ],
-  build: {
-    outDir: 'dist'
+            })
+          }
+        },
+      },
+    ],
+
+    build: {
+      outDir: 'dist',
+      // Everything is inlined — no need to copy public/ assets to dist/
+      copyPublicDir: false,
+    },
   }
 })

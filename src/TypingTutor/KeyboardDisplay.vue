@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 const props = defineProps<{
   heldKey: string
@@ -467,10 +467,17 @@ const handOverlay = computed(() => {
 }
 
 .key.next {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #854d0e;
-  box-shadow: none;
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #78350f;
+  box-shadow: inset 0 0 0 1px #fbbf24;
+}
+
+.key.special.next {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #78350f;
+  box-shadow: inset 0 0 0 2px #f59e0b;
 }
 
 .key.mistake {

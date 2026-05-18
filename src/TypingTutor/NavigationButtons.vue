@@ -9,6 +9,7 @@
       <div class="phase-display" v-if="phaseLabel">{{ phaseLabel }}</div>
     </div>
     <div class="button-group">
+      <span class="progression-label" v-if="lessonStageLabel">{{ lessonStageLabel }}</span>
       <button
         class="nav-button stage-button"
         :disabled="!canGoPrevStage"
@@ -92,6 +93,9 @@ defineProps<{
   phaseLabel?: string
   sessionSecondsDisplay?: string
   sessionWarning?: boolean
+  stageProgression?: string
+  lessonProgression?: string
+  lessonStageLabel?: string
 }>()
 
 defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage'])
@@ -143,6 +147,15 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   background: rgba(0, 120, 212, 0.12);
   padding: clamp(3px, 0.6vw, 5px) clamp(6px, 1vw, 10px);
   border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.progression-label {
+  font-size: clamp(10px, 1.6vw, 13px);
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
   flex-shrink: 0;
 }
 
@@ -263,12 +276,26 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
 }
 
 .stage-button.highlightNextStage {
-  background: linear-gradient(180deg, rgba(0, 120, 212, 0.18), rgba(0, 120, 212, 0.08));
-  border-color: rgba(0, 120, 212, 0.3);
-  color: var(--accent-primary);
+  background: var(--success-color);
+  border-color: var(--success-color);
+  color: #fff;
+  box-shadow: 0 0 0 0 rgba(19, 165, 56, 0.5);
+  animation: pulse-stage 1.2s ease-in-out infinite;
 }
 
-.dark-toggle { 
+.stage-button.highlightNextStage:hover {
+  background: var(--success-color);
+  color: #fff;
+  filter: brightness(1.1);
+}
+
+@keyframes pulse-stage {
+  0%   { box-shadow: 0 0 0 0 rgba(19, 165, 56, 0.5); }
+  60%  { box-shadow: 0 0 0 6px rgba(19, 165, 56, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(19, 165, 56, 0); }
+}
+
+.dark-toggle {
   color: var(--text-secondary);
   background: var(--bg-tertiary);
 }
@@ -278,16 +305,5 @@ defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next
   background: var(--bg-tertiary);
   box-shadow: var(--shadow-md);
   border-color: var(--accent-primary);
-}
-
-.highlightNextStage { 
-  color: var(--success-color);
-  font-weight: 700;
-  background: rgba(19, 165, 56, 0.1);
-}
-
-.highlightNextStage:hover {
-  background: rgba(19, 165, 56, 0.15);
-  color: var(--success-color);
 }
 </style>

@@ -58,6 +58,8 @@ export function countAyin(text: string): number {
 }
 
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { stages as bundledStages } from 'virtual:stages'
+import { fireConfetti } from '../composables/useConfetti'
 
 export function useTyping(initialLesson: Lesson) {
   // ── Core state ──────────────────────────────────────────────────────────────
@@ -202,6 +204,12 @@ export function useTyping(initialLesson: Lesson) {
     return `${current}/${total}`
   })
 
+  // lesson number / stage number — e.g. "2/1"
+  const lessonStageLabel = computed(() => {
+    if (currentStageIndex.value < 0 || currentLessonIndex.value < 0) return ''
+    return `${currentLessonIndex.value + 1}/${currentStageIndex.value + 1}`
+  })
+
   const canGoPrev = computed(() => currentLessonIndex.value > 0)
 
   const canGoNext = computed(
@@ -338,6 +346,7 @@ export function useTyping(initialLesson: Lesson) {
   }
 
   const triggerLessonComplete = () => {
+    fireConfetti()
     summaryData.value = {
       accuracy: accuracy.value,
       wpm: wpm.value,
@@ -597,10 +606,9 @@ export function useTyping(initialLesson: Lesson) {
   // ── Bootstrap ───────────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
-      const fetches = [1, 2, 3, 4, 5, 6].map((n) =>
-        fetch(`/stage_${n}.json`).then((r) => (r.ok ? r.json() : null))
-      )
-      const results = await Promise.all(fetches)
+      // bundledStages is a plain array at build time (inlined JSON),
+      // or a Promise in dev (fetched from the dev server)
+      const results: (Stage | null)[] = await Promise.resolve(bundledStages)
       for (const stage of results) {
         if (stage) allStages.value.push(stage as Stage)
       }
@@ -627,7 +635,7 @@ export function useTyping(initialLesson: Lesson) {
       const stageProg = stageProgression.value
       const lessonProg = lessonProgression.value
       if (stageProg && lessonProg) {
-        document.title = `שלב ${stageProg} • שיעור ${lessonProg}`
+        document.title = `הקלדה עיברית — ${lessonStageLabel.value}`
       }
     },
     { immediate: true }
@@ -688,6 +696,7 @@ export function useTyping(initialLesson: Lesson) {
     // progression
     lessonProgression,
     stageProgression,
+    lessonStageLabel,
     // navigation actions
     goPrevLesson,
     goNextLesson,
