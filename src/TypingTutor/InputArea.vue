@@ -9,7 +9,8 @@
         v-html="displayText"
       ></div>
       <div v-else class="sample-hidden">
-        הטקסט מוסתר — הקלד מהזיכרון
+        <span class="hidden-msg">הטקסט מוסתר — הקלד מהזיכרון</span>
+        <a href="#" class="show-text-link" @click.prevent="$emit('reveal')">הצג שוב</a>
       </div>
     </div>
     <textarea
@@ -41,7 +42,7 @@ const props = defineProps<{
   isHidden?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur'])
+const emit = defineEmits(['update:modelValue', 'input', 'keydown', 'keyup', 'blur', 'reveal'])
 
 const inputEl = ref<HTMLTextAreaElement | null>(null)
 
@@ -171,6 +172,22 @@ watch(
 }
 
 .fluent-input::placeholder { color: var(--text-tertiary); }
+
+.hidden-msg { display: inline-flex; align-items: center; height: 56px; }
+.show-text-link {
+  margin-inline-start: 12px;
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 400;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  line-height: normal;
+}
+.show-text-link:focus, .show-text-link:hover { outline: none; text-decoration: none; }
 
 :deep(span.current) {
   background: rgba(0, 120, 212, 0.18);

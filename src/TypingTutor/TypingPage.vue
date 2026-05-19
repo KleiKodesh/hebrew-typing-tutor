@@ -71,12 +71,20 @@
         </div>
       </div>
 
+      <!-- Zone text for free mode -->
+      <div v-if="exerciseMode === 'free' && zoneText" class="zone-text">
+        <div v-if="currentZone !== 'zone_c'" class="zone-text-title">{{ getZoneName(currentZone) }}</div>
+        <div class="zone-text-body" dir="rtl">{{ zoneText }}</div>
+      </div>
+
       <!-- Recall mode: show text → hide → type -->
       <RecallPanel
         v-if="exerciseMode === 'recall' && !recallReady"
         :text="currentTarget"
         @start="startRecall"
       />
+
+      
 
       <!-- Free mode: no target, just a textarea -->
       <FreeTypingPanel
@@ -100,7 +108,10 @@
         @keydown="onKeyDown"
         @keyup="onKeyUp"
         @blur="onBlur"
+        @reveal="showRecallPanel"
       />
+
+      
 
     </div>
 
@@ -137,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from '../KeyboardDisplay/KeyboardDisplay.vue'
@@ -173,6 +184,23 @@ const {
   onInput, onKeyDown, onKeyUp,
   clearAllProgressAndSession, currentTarget,
 } = useTyping({ title: '', text: '' }, userName)
+
+function showRecallPanel() {
+  // return to the recall view so the user can re-read the text
+  try {
+    ;(recallReady as any).value = false
+    ;(recallHidden as any).value = false
+    console.log('[TypingPage] showRecallPanel called — recallReady reset')
+  } catch (e) {
+    console.error('Failed to show recall panel', e)
+  }
+}
+
+const zoneText = computed(() => {
+  const lesson = currentLesson.value
+  const z = currentZone.value ?? 'zone_c'
+  return lesson?.exercise_zones?.[z] ?? ''
+})
 
 function onBlur() {}
 
@@ -264,6 +292,26 @@ watch(showSummary, (visible) => {
 .zone-pip--done { background: rgba(16,124,16,0.1); border-color: rgba(16,124,16,0.25); color: var(--success-color); }
 .zone-pip-label { pointer-events: none; }
 
+/* ── Zone text shown in free mode ── */
+.zone-text {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  direction: rtl;
+  font-size: 16px;
+}
+.zone-text-title {
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 6px;
+}
+.zone-text-body {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
 /* ── English warning popup ── */
 .warning-popup {
   position: fixed;
@@ -299,4 +347,6 @@ watch(showSummary, (visible) => {
   from { opacity: 0; transform: translate(-50%,-50%) scale(0.86); }
   to   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 }
+
+/* recall controls removed — InputArea now provides inline 'הצג' */
 </style>

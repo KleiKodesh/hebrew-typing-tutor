@@ -66,13 +66,15 @@ Abecassis et al. (2025) found that Hebrew (uniquely, unlike Arabic) shows shorte
 
 **Implementation:** Stage 5 uses `exercise_mode: "recall"`. The app shows the exercise text, then hides it when the user clicks "קראתי — הסתר והתחל". The user types from memory. The text does not reappear during typing.
 
+**Lesson text treatment (per Decision 11):** The recall-mode rationale is the most actionable citation in the entire curriculum — it directly explains why the mode changed and what the learner should expect. Lesson texts describe the finding and its mechanism without researcher names or years. The plan document (here) retains full attribution; the learner-facing text does not.
+
 ---
 
 ### Decision 5: Stage 6 — free mode with anchor words
 
-Logan (1988) instance theory: automatization requires many encounters with the same item. The top-15 frequency words (של על עם כי את לא זה הוא גם אם כל עוד יש היה כן) appear in every Stage 6 lesson.
+Logan (1988) instance theory: automatization requires many encounters with the same item. The top-20 frequency words (של על עם כי את לא זה הוא גם אם כל עוד יש היה כן כך מה לו הם אבל) appear in every Stage 6 lesson.
 
-**Implementation:** Stage 6 uses `exercise_mode: "free"`. The app shows a plain textarea with no target text. The stage JSON includes a `high_frequency_anchor_words` array at the top level.
+**Implementation:** Stage 6 uses `exercise_mode: "free"`. The app shows a plain textarea with no target text. The stage JSON includes a `high_frequency_anchor_words` string at the top level (same data type as zone fields).
 
 ---
 
@@ -120,6 +122,18 @@ Five Hebrew letters have final forms: כ/ך, פ/ף, מ/ם, נ/ן, צ/ץ. The fin
 
 **Concretely:** In Stage 1 L3 (right-hand intro), ך and ף are acknowledged and practiced, but the lesson's center of gravity is ח and ל — the home-position keys that everything else returns to. ך and ף appear in Zone A as supporting pairs, not as the pedagogical target. In Stage 2 L7, ן gets its own lesson because of the documented ו/ן confusion (SI-1452), but the lesson is kept lean — enough to establish the finger mapping and address the confusion, not a full-length treatment.
 
+**Pool status of each final form across stages:**
+
+| Final | Base | In pool from | Notes |
+|-------|------|-------------|-------|
+| ך | כ | Stage 1 (home row key) | Key location known from L3; base↔final *rule* taught in Stage 4 L5 |
+| ף | פ | Stage 1 (home row key) | Key location known from L3; base↔final *rule* taught in Stage 4 L7 |
+| ן | נ | Stage 2 L7 | Dedicated lesson due to ו/ן visual confusion; rule reinforced in Stage 4 L6 |
+| ם | מ | Stage 4 L5 | **Genuinely new key in Stage 4** — must not appear in exercises before L5 |
+| ץ | צ | Stage 4 L7 | **Genuinely new key in Stage 4** — must not appear in exercises before L7 |
+
+The practical consequence: words ending in ך, ף, or ן may appear in Stages 1–3 as incidental vocabulary. Words ending in ם or ץ must not appear until Stage 4 L5 and L7 respectively. Common plural words like ספרים, פרחים, ילדים all contain ם and are pool violations in any lesson before Stage 4 L5.
+
 ---
 
 ### Decision 11: Research citations in lesson text must be directly actionable
@@ -141,9 +155,25 @@ These two fields have distinct jobs and must not overlap:
 
 `עיניים על המסך` is an operational reminder, not an explanation — it belongs in `session_guidance` on every lesson without exception.
 
+### Decision 13: ם and ץ are pool-restricted — treat them like any new letter
+
+ם (mem-sofit) and ץ (tsadi-sofit) are the only two final forms that do not appear on the keyboard before their dedicated Stage 4 lessons. They must be treated with the same pool discipline as any new letter: no exercise in any lesson before their introduction may contain a word with ם or ץ.
+
+This is a non-obvious constraint because many common Hebrew plural and construct words contain ם — ספרים, פרחים, ילדים, בגדים, זמנים. These words feel natural and are tempting to use as vocabulary in Stages 2 and 3 where the pool is otherwise rich. They are pool violations until Stage 4 L5.
+
+Similarly, ץ appears in common words like ארץ and חץ. These must not appear before Stage 4 L7.
+
+**Validation rule:** Before generating or editing any Zone B or Zone C content for lessons in Stages 1–4, check every word for ם and ץ and verify their lesson has been reached. Programmatic validation against the cumulative letter pool (see Part 2) catches these automatically.
+
 ---
 
-## Part 2 — JSON Data Structure (Current)
+### Decision 14: Zone A for final-letter lessons must be typeable
+
+Zone A exercises are typed by the learner. Arrow notation (`כ→ך`, `נ→ן`) is not typeable and must not appear in zone_a. Instead, Zone A for final-letter lessons (Stage 4 L5–L7) should combine:
+- Isolated key alternation: `כ ך כ ך מ ם מ ם` — establishes the motor location of the new key
+- Short base↔final word pairs: `מלך ילך דרך` — applies the switching rule immediately in real context
+
+The isolated alternation comes first (motor warmup), the word pairs follow. Both are typed, both are counted toward the zone.
 
 ### Stage-level fields
 
@@ -153,7 +183,7 @@ These two fields have distinct jobs and must not overlap:
   "stage_title": "...",
   "description": "...",
   "phase_context": "...",
-  "high_frequency_anchor_words": ["..."]  // Stage 6 only
+  "high_frequency_anchor_words": "..."  // Stage 6 only — string, same type as zone fields
 }
 ```
 
@@ -216,31 +246,36 @@ These two fields have distinct jobs and must not overlap:
 - Mode: copy
 - L1: ת (7th most frequent; אמה ימין down from ל — bottom row, not top row)
 - L2: פ, L3: צ, L4: ת+פ+צ combined
-- L5: ך and ם (base↔final pairs)
-- L6: ן alone (documented ו/ן confusion from SI-1452-2)
-- L7: ף and ץ
-- L8: All 5 finals mixed
+- L5: ך and ם (base↔final pairs). ם is a genuinely new key here — must not appear in any earlier lesson
+- L6: ן alone (documented ו/ן confusion from SI-1452-2). ן has been in the pool since Stage 2 but the base↔final *rule* is taught here
+- L7: ף and ץ. ץ is genuinely new here — must not appear before this lesson. ף has been in the pool since Stage 1 but the rule is taught here
+- L8: All 5 finals mixed — zone_b and zone_c must give balanced representation to all five, with ף and ץ receiving at least as many occurrences as ך and ם
 - L9: Summary, all 27 letters
 - All lessons: ayin_check: true
+
+**What "covering" the finals means:** Stage 4 teaches two distinct things per final form — (1) the base↔final switching *rule* (declarative: "use the final at end of word") and (2) reinforcement that the key location is correct under rule-switching pressure. For ך, ף, ן the key location was already known; Stage 4 only adds the rule. For ם and ץ, both key location and rule are new.
+
+**Zone A design for final-letter lessons:** Zone A in L5–L7 should not use arrow notation (`כ→ך`) which cannot be typed. Instead use actual base↔final word pairs that demonstrate the switching rule in real context, alongside isolated key pairs (`כ ך כ ך`) for motor warmup.
 
 ### Stage 5 — All letters known: rhythm, punctuation, recall
 - Phase: אסוציאטיבי / input
 - Mode: **recall** (read once, hide, type from memory)
 - zone_a and zone_b are null in every lesson
-- L1: Transition to recall mode
-- L2: Rhythm/cadence focus
-- L3: Period (.) introduced
-- L4: Comma (,) introduced
-- L5: Question mark (?) introduced
-- L6: Full punctuation sentences
-- L7: First continuous paragraph
-- L8: Longest exercise so far
+- zone_c is the only zone — a flowing Hebrew passage, growing progressively in length from ~120 chars (L1) to ~254 chars (L8)
+- L1: Transition to recall mode — explains the mechanism, short passage
+- L2: Cadence focus — even pace across the whole passage, not bursts-and-stops
+- L3: Period (.) introduced — finger position + BiDi visual behaviour explained
+- L4: Comma (,) introduced — same finger as period, different key; anticipatory reading
+- L5: Question mark (?) introduced — Shift+/ combination; BiDi position explained
+- L6: All three punctuation marks together — full sentences, mixed punctuation
+- L7: First continuous paragraph — no scaffolding, natural prose
+- L8: Summary — longest passage, all punctuation, full recall
 - All lessons: ayin_check: true
 
 ### Stage 6 — Automatization: free typing
 - Phase: אוטומטי / automatization
 - Mode: **free** (no target text)
-- Top-level `high_frequency_anchor_words` present in every lesson's zone_c
+- Top-level `high_frequency_anchor_words` string present in every lesson's zone_c — all 20 words
 - L1: Top-20 frequency words
 - L2: Common phrases/collocations
 - L3: Speed control (80% max, 95% accuracy rule)
@@ -319,3 +354,5 @@ Lessons are identified by `lesson_id` (preferred) with fallback to `title`. This
 | Final-form letters get reduced early coverage (Decision 10) | Pedagogical principle — deep treatment deferred to Stage 4 where base↔final pairs are taught together; premature equal billing creates mapping confusion |
 | Research citations must be directly actionable (Decision 11) | Pedagogical principle — decorative citations in pre-exercise text add cognitive load without changing learner behavior |
 | `text` vs `session_guidance` field ownership (Decision 12) | Pedagogical principle — operational reminders (including עיניים על המסך) belong in `session_guidance`; `text` is explanation only |
+| ם and ץ are pool-restricted until their Stage 4 lessons (Decision 13) | Pool discipline — ם and ץ are the only finals that introduce genuinely new keys; common plural words (ספרים, ילדים, ארץ) are pool violations before Stage 4 L5/L7 |
+| Zone A for final-letter lessons must be typeable (Decision 14) | Pedagogical principle — arrow notation cannot be typed; zone_a must combine isolated key alternation with real base↔final word pairs |
