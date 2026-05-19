@@ -26,14 +26,14 @@ Space thumb positions are stored as **absolute `%` coordinates** (not deltas), b
 2. Both thumbs appear at the last saved positions
 3. Drag each to the correct spot and click Save / Enter
 4. Click **Submit all to server**
-5. Tell Kiro — it reads `draggedLeft`/`draggedTop` from `hand-offsets/left-thumb_row4.json` and `hand-offsets/right-thumb_row4.json` and hardcodes them into `KeyboardDisplay.vue` and `HandSimulator.vue`
+5. Tell Kiro — it reads `draggedLeft`/`draggedTop` from `hand-offsets/left-thumb_row4.json` and `hand-offsets/right-thumb_row4.json` and hardcodes them into `src/KeyboardDisplay/KeyboardDisplay.vue` and `src/Debug/HandSimulator.vue`
 
 ### Where calibration data lives
 
 | File | Purpose |
 |------|---------|
 | `hand-offsets/<finger>_row<n>.json` | Per-finger, per-row calibration data (source of truth) |
-| `src/TypingTutor/KeyboardDisplay.vue` | Hardcoded absolute positions for `left-thumb` and `right-thumb` |
+| `src/KeyboardDisplay/KeyboardDisplay.vue` | Hardcoded absolute positions for `left-thumb` and `right-thumb` |
 | `src/Debug/HandSimulator.vue` | Same hardcoded values — must stay in sync with KeyboardDisplay |
 
 The app is built as a single self-contained HTML file (`vite-plugin-singlefile`), so calibration values must be hardcoded at build time — there is no runtime file fetch.

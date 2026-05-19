@@ -126,7 +126,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
-import KeyboardDisplay from '../TypingTutor/KeyboardDisplay.vue'
+import KeyboardDisplay from '../KeyboardDisplay/KeyboardDisplay.vue'
 import {
   KEYBOARD_HE,
   KEY_UNITS,
@@ -134,7 +134,7 @@ import {
   KEY_ROW_HE,
   HAND_W,
   computeHandPos,
-} from '../TypingTutor/HebrewKeyboard'
+} from '../KeyboardDisplay/HebrewKeyboard'
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const keyboardWrapper  = ref<HTMLElement>()
