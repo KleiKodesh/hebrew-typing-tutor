@@ -256,9 +256,10 @@ const {
   onKeyDown,
   onKeyUp,
   clearAllProgress,
+  clearAllProgressAndSession,
   // current target (for recall display)
   currentTarget,
-} = useTyping({ title: '', text: '' })
+} = useTyping({ title: '', text: '' }, userName)
 
 // expose currentTarget for recall panel
 // (it's already returned from useTyping)
@@ -274,19 +275,7 @@ const handleResetLesson = () => {
 
 const confirmReset = () => {
   showResetConfirm.value = false
-  
-  // Clear all lesson progress and weak letter tracking
-  clearAllProgress()
-  
-  // Clear session timer data
-  const today = new Date()
-  const todayKey = `sessionTime_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  localStorage.removeItem(todayKey)
-  
-  // Reset session state
-  sessionElapsedMs.value = 0
-  sessionWarning.value = false
-  sessionExpired.value = false
+  clearAllProgressAndSession()
 }
 
 // ── Auto-focus on lesson/zone change ────────────────────────────────────────

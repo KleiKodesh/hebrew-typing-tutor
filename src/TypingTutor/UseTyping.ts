@@ -46,11 +46,12 @@ export function getZoneName(zone: ZoneKey): string {
 }
 
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import type { Ref } from 'vue'
 import { stages as bundledStages } from 'virtual:stages'
 import { fireConfetti } from '../composables/useConfetti'
 import { AYIN } from './HebrewKeyboard'
 
-export function useTyping(initialLesson: Lesson) {
+export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   // ── Core state ──────────────────────────────────────────────────────────────
   const typed = ref('')
   const accuracy = ref(100)
@@ -90,12 +91,23 @@ export function useTyping(initialLesson: Lesson) {
   const recallReady = ref(false)   // user has read the text and clicked ready
   const recallHidden = ref(false)  // text is now hidden, typing begins
 
+  // ── Per-user localStorage key helpers ──────────────────────────────────────
+  function userPrefix(): string {
+    const name = userName?.value?.trim()
+    return name ? `user:${name}:` : ''
+  }
+
+  function userKey(key: string): string {
+    return `${userPrefix()}${key}`
+  }
+
   // ── Session timer (Baddeley & Longman 1978: 20 min max per day) ─────────────
   const SESSION_MAX_MS = 20 * 60 * 1000
 
   function todayKey(): string {
     const d = new Date()
-    return `sessionTime_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return userKey(`sessionTime_${dateStr}`)
   }
 
   function loadTodayMs(): number {
@@ -193,10 +205,10 @@ export function useTyping(initialLesson: Lesson) {
     return `${current}/${total}`
   })
 
-  // lesson number / stage number — e.g. "2/1"
+  // stage number : lesson number — e.g. "2:1"
   const lessonStageLabel = computed(() => {
     if (currentStageIndex.value < 0 || currentLessonIndex.value < 0) return ''
-    return `${currentLessonIndex.value + 1}/${currentStageIndex.value + 1}`
+    return `${currentStageIndex.value + 1}:${currentLessonIndex.value + 1}`
   })
 
   const canGoPrev = computed(() => currentLessonIndex.value > 0)
@@ -349,7 +361,7 @@ export function useTyping(initialLesson: Lesson) {
   const saveLessonProgress = () => {
     const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
     lessonProgress.value[lessonId] = typed.value
-    localStorage.setItem('lessonProgress', JSON.stringify(lessonProgress.value))
+    localStorage.setItem(userKey('lessonProgress'), JSON.stringify(lessonProgress.value))
   }
 
   const applyLesson = (lesson: Lesson) => {
@@ -426,8 +438,16 @@ export function useTyping(initialLesson: Lesson) {
     resetTyping()
     lessonProgress.value = {}
     weak.value = {}
-    localStorage.removeItem('lessonProgress')
-    localStorage.removeItem('weak')
+    localStorage.removeItem(userKey('lessonProgress'))
+    localStorage.removeItem(userKey('weak'))
+  }
+
+  const clearAllProgressAndSession = () => {
+    clearAllProgress()
+    localStorage.removeItem(todayKey())
+    sessionElapsedMs.value = 0
+    sessionWarning.value = false
+    sessionExpired.value = false
   }
 
   const restartLesson = () => {
@@ -474,19 +494,23 @@ export function useTyping(initialLesson: Lesson) {
     heldKey.value = event.key
   }
 
+  let englishWarningTimer: ReturnType<typeof setTimeout> | null = null
   const triggerEnglishWarning = () => {
     englishWarning.value = true
-    window.clearTimeout((triggerEnglishWarning as any)._timer)
-    ;(triggerEnglishWarning as any)._timer = window.setTimeout(() => {
+    if (englishWarningTimer) clearTimeout(englishWarningTimer)
+    englishWarningTimer = setTimeout(() => {
       englishWarning.value = false
+      englishWarningTimer = null
     }, 1400)
   }
 
+  let mistakeTimer: ReturnType<typeof setTimeout> | null = null
   const triggerMistake = (key: string) => {
     mistakeKey.value = key
-    window.clearTimeout((triggerMistake as any)._timer)
-    ;(triggerMistake as any)._timer = window.setTimeout(() => {
+    if (mistakeTimer) clearTimeout(mistakeTimer)
+    mistakeTimer = setTimeout(() => {
       mistakeKey.value = ''
+      mistakeTimer = null
     }, 360)
   }
 
@@ -564,7 +588,7 @@ export function useTyping(initialLesson: Lesson) {
     lastKey.value = typed.value.slice(-1)
 
     saveLessonProgress()
-    localStorage.setItem('weak', JSON.stringify(weak.value))
+    localStorage.setItem(userKey('weak'), JSON.stringify(weak.value))
   }
 
   const generateWeakLesson = () => {
@@ -610,10 +634,10 @@ export function useTyping(initialLesson: Lesson) {
       console.error('Failed to load stages:', error)
     }
 
-    const savedWeak = localStorage.getItem('weak')
+    const savedWeak = localStorage.getItem(userKey('weak'))
     if (savedWeak) weak.value = JSON.parse(savedWeak)
 
-    const savedProgress = localStorage.getItem('lessonProgress')
+    const savedProgress = localStorage.getItem(userKey('lessonProgress'))
     if (savedProgress) lessonProgress.value = JSON.parse(savedProgress)
   })
 
@@ -630,8 +654,33 @@ export function useTyping(initialLesson: Lesson) {
     { immediate: true }
   )
 
+  // ── Reload per-user data when the active user changes ──────────────────────
+  if (userName) {
+    watch(userName, () => {
+      // Load this user's progress and weak letters
+      const savedWeak = localStorage.getItem(userKey('weak'))
+      weak.value = savedWeak ? JSON.parse(savedWeak) : {}
+
+      const savedProgress = localStorage.getItem(userKey('lessonProgress'))
+      lessonProgress.value = savedProgress ? JSON.parse(savedProgress) : {}
+
+      // Reload today's session time for the new user
+      sessionElapsedMs.value = loadTodayMs()
+      sessionWarning.value = sessionElapsedMs.value >= 18 * 60 * 1000
+      sessionExpired.value = sessionElapsedMs.value >= SESSION_MAX_MS
+
+      // Reset typing state so the new user starts fresh
+      stopSessionTimer()
+      currentZoneIndex.value = 0
+      resetTyping()
+    })
+  }
+
   onUnmounted(() => {
     stopSessionTimer()
+    if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer)
+    if (englishWarningTimer) clearTimeout(englishWarningTimer)
+    if (mistakeTimer) clearTimeout(mistakeTimer)
   })
 
   return {
@@ -703,6 +752,7 @@ export function useTyping(initialLesson: Lesson) {
     dismissExpired,
     continueAfterExpiration,
     clearAllProgress,
+    clearAllProgressAndSession,
     generateWeakLesson,
     currentTarget,
   }

@@ -15,4 +15,15 @@ if ((window as any).visualViewport) {
 	;(window as any).visualViewport.addEventListener('scroll', setVhVariable)
 }
 
-createApp(App).mount('#app')
+const app = createApp(App).mount('#app')
+
+// Clean up viewport listeners if the module is hot-replaced
+if (import.meta.hot) {
+	import.meta.hot.dispose(() => {
+		window.removeEventListener('resize', setVhVariable)
+		if ((window as any).visualViewport) {
+			;(window as any).visualViewport.removeEventListener('resize', setVhVariable)
+			;(window as any).visualViewport.removeEventListener('scroll', setVhVariable)
+		}
+	})
+}

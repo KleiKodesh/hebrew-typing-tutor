@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const emit = defineEmits<{
   done: [name: string]
@@ -44,9 +44,14 @@ const emit = defineEmits<{
 
 const nameInput = ref('')
 const inputEl = ref<HTMLInputElement | null>(null)
+let focusTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
-  setTimeout(() => inputEl.value?.focus(), 240)
+  focusTimer = setTimeout(() => inputEl.value?.focus(), 240)
+})
+
+onUnmounted(() => {
+  if (focusTimer) clearTimeout(focusTimer)
 })
 
 function submit() {

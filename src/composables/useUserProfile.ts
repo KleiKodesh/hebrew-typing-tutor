@@ -1,8 +1,15 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const ACTIVE_USER_KEY = 'activeUser'
 const ALL_USERS_KEY = 'allUsers'
-const INTRO_SEEN_KEY = 'introSeen'
+
+function introSeenKey(name: string): string {
+  return `user:${name}:introSeen`
+}
+
+function userDataPrefix(name: string): string {
+  return `user:${name}:`
+}
 
 function loadAllUsers(): string[] {
   try {
@@ -22,7 +29,11 @@ function saveAllUsers(users: string[]) {
 // Module-level singletons so all composable instances share the same state
 const userName = ref<string>(localStorage.getItem(ACTIVE_USER_KEY) ?? '')
 const allUsers = ref<string[]>(loadAllUsers())
-const introSeen = ref<boolean>(localStorage.getItem(INTRO_SEEN_KEY) === 'true')
+
+// introSeen is derived from the active user's own key
+const introSeen = ref<boolean>(
+  userName.value ? localStorage.getItem(introSeenKey(userName.value)) === 'true' : false
+)
 
 // Migrate legacy single-user storage
 const legacyName = localStorage.getItem('userName')
@@ -34,6 +45,15 @@ if (legacyName && !allUsers.value.includes(legacyName)) {
     localStorage.setItem(ACTIVE_USER_KEY, legacyName)
   }
   localStorage.removeItem('userName')
+}
+
+// Migrate legacy global introSeen to the active user's key
+const legacyIntroSeen = localStorage.getItem('introSeen')
+if (legacyIntroSeen !== null && userName.value) {
+  if (!localStorage.getItem(introSeenKey(userName.value))) {
+    localStorage.setItem(introSeenKey(userName.value), legacyIntroSeen)
+  }
+  localStorage.removeItem('introSeen')
 }
 
 export function useUserProfile() {
@@ -50,6 +70,8 @@ export function useUserProfile() {
   function switchUser(name: string) {
     userName.value = name
     localStorage.setItem(ACTIVE_USER_KEY, name)
+    // Load this user's introSeen flag
+    introSeen.value = localStorage.getItem(introSeenKey(name)) === 'true'
   }
 
   // Keep setUserName as an alias for addUser (used by onboarding flow)
@@ -59,12 +81,16 @@ export function useUserProfile() {
 
   function markIntroSeen() {
     introSeen.value = true
-    localStorage.setItem(INTRO_SEEN_KEY, 'true')
+    if (userName.value) {
+      localStorage.setItem(introSeenKey(userName.value), 'true')
+    }
   }
 
   function resetIntro() {
     introSeen.value = false
-    localStorage.removeItem(INTRO_SEEN_KEY)
+    if (userName.value) {
+      localStorage.removeItem(introSeenKey(userName.value))
+    }
   }
 
   function clearUser() {
@@ -75,6 +101,16 @@ export function useUserProfile() {
   function deleteUser(name: string) {
     allUsers.value = allUsers.value.filter((u) => u !== name)
     saveAllUsers(allUsers.value)
+
+    // Wipe all per-user localStorage keys
+    const prefix = userDataPrefix(name)
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith(prefix)) keysToRemove.push(key)
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k))
+
     // If we deleted the active user, clear it
     if (userName.value === name) {
       clearUser()

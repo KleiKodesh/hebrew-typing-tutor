@@ -12,7 +12,7 @@ function getInitialTheme(): boolean {
 
 const isDarkMode = ref<boolean>(getInitialTheme())
 
-// Listen for system theme changes
+// Listen for system theme changes — registered once at module level (singleton)
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 function handleSystemThemeChange(e: MediaQueryListEvent) {
   const saved = localStorage.getItem('darkMode')
@@ -21,10 +21,7 @@ function handleSystemThemeChange(e: MediaQueryListEvent) {
     isDarkMode.value = e.matches
   }
 }
-
-if (mediaQuery.addEventListener) {
-  mediaQuery.addEventListener('change', handleSystemThemeChange)
-}
+mediaQuery.addEventListener('change', handleSystemThemeChange)
 
 export function useDarkMode() {
   watch(isDarkMode, (newValue) => {

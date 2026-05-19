@@ -106,6 +106,43 @@ After completing all zones of a lesson, the app shows a summary overlay with:
 
 ---
 
+### Decision 9: Real words scale with cumulative letter knowledge
+
+Zone B (and Zone C) must use the richest real-word vocabulary the learner's current letter pool allows. In the first two lessons of Stage 1, only four letters are known — genuine words are barely possible and bigram drills are acceptable. From Stage 1 L3 onward (8 letters), real Hebrew words become available and should dominate Zone B. By Stage 1 L6 (all 10 home-row letters), a substantial vocabulary is reachable — ילד, גדל, שכל, ידע, ידיד, חיל, דגל, גחל, גידל, and more. By Stage 2, the pool grows to 16 letters and the word space expands significantly. **The rule: Zone B should contain the most lexically meaningful words the current pool allows, not invented combinations. Invented bigrams are a fallback for early lessons only, not a default.**
+
+This principle also governs Zone C: as more letters are known, Zone C should shift from short invented combinations toward real multi-syllable words and eventually recognizable phrases. The richer the vocabulary, the stronger the associative memory anchoring each finger movement to real language.
+
+---
+
+### Decision 10: Letters with סופיות get reduced early-stage coverage
+
+Five Hebrew letters have final forms: כ/ך, פ/ף, מ/ם, נ/ן, צ/ץ. The final forms are covered in full in Stage 4 (four dedicated lessons). As a consequence, the base letters' final forms that appear in earlier stages — specifically ך and ף in Stage 1, and ן in Stage 2 — should be introduced briefly as "this key exists on this finger" and kept as supporting characters in exercises, not as focal letters. They do not warrant equal billing with non-final letters in those stages, and they should not receive a dedicated lesson of their own before Stage 4.
+
+**Concretely:** In Stage 1 L3 (right-hand intro), ך and ף are acknowledged and practiced, but the lesson's center of gravity is ח and ל — the home-position keys that everything else returns to. ך and ף appear in Zone A as supporting pairs, not as the pedagogical target. In Stage 2 L7, ן gets its own lesson because of the documented ו/ן confusion (SI-1452), but the lesson is kept lean — enough to establish the finger mapping and address the confusion, not a full-length treatment.
+
+---
+
+### Decision 11: Research citations in lesson text must be directly actionable
+
+The `text` field of each lesson is read by the learner immediately before typing. It should tell the learner something that changes what they are about to do, or explains something they will otherwise misunderstand about the upcoming exercise. Research citations are appropriate when they directly justify a design decision the learner is about to experience — for example, explaining why varied practice feels harder (Shea & Morgan), or why the GABA mechanism means blocked drills can suppress retention (Chalavi et al.), or why ע has its own dedicated lesson (Rosenberg-Adler & Weintraub).
+
+Research citations are **not appropriate** when they are decorative: frequency percentages on individual letters (the learner does not need to know that ר is 6.28% to practice the ר key), historical keyboard layout trivia unrelated to the motor task at hand, or study descriptions that don't change anything about how the learner should approach the next 20 minutes.
+
+**The test:** remove the citation. If the instruction still makes sense and the learner still knows what to do, the citation was decorative and should be cut.
+
+---
+
+### Decision 12: Field ownership — `text` vs `session_guidance`
+
+These two fields have distinct jobs and must not overlap:
+
+- **`session_guidance`** — operational reminders the learner reads before starting and may glance at mid-session: time limit, one-session-per-day rule, warm-up drill, when to stop, and the fixed closing reminder `עיניים על המסך, לא על הידיים.` Every lesson ends with this phrase in `session_guidance`. It never appears in `text`.
+- **`text`** — the explanatory context for this specific lesson: what the finger does, what makes this key or transition difficult, what the learner should pay attention to. No operational reminders here.
+
+`עיניים על המסך` is an operational reminder, not an explanation — it belongs in `session_guidance` on every lesson without exception.
+
+---
+
 ## Part 2 — JSON Data Structure (Current)
 
 ### Stage-level fields
@@ -129,8 +166,8 @@ After completing all zones of a lesson, the app shows a summary overlay with:
   "phase_label": "קוגניטיבי | אסוציאטיבי | אוטומטי",
   "salthouse_target": "translation | parsing | input | automatization",
   "exercise_mode": "copy | recall | free",
-  "session_guidance": "...",
-  "text": "...",
+  "session_guidance": "...(always ends with: עיניים על המסך, לא על הידיים.)",
+  "text": "...(no operational reminders; no עיניים phrase)",
   "exercise_zones": {
     "zone_a": "string or null",
     "zone_b": "string or null",
@@ -142,6 +179,8 @@ After completing all zones of a lesson, the app shows a summary overlay with:
 
 `zone_a` and `zone_b` are null in Stages 5–6 and in consolidation/summary lessons (L7–L8) of Stages 1–4.
 
+**Field discipline:** `session_guidance` owns all operational reminders (time, frequency, warm-up, stop conditions, eyes-on-screen). `text` owns explanation and context only. See Decision 12.
+
 ---
 
 ## Part 3 — Stage Content Summary
@@ -149,12 +188,12 @@ After completing all zones of a lesson, the app shows a summary overlay with:
 ### Stage 1 — Home Row (ש ד ג כ | י ח ל ע)
 - Phase: קוגניטיבי / translation
 - Mode: copy
-- L1–L2: Left hand (ש ד ג כ). ayin_check: false
-- L3: Right hand intro (י ח ל ע). ayin_check: true from here on
-- L4: Dedicated ע lesson (every word contains ע)
-- L5: Both hands + explicit "varied practice paradox" explanation
-- L6: ע reinforcement
-- L7: Full mix, consolidation only
+- L1–L2: Left hand (ש ד ג כ). Only 4 letters — bigram drills acceptable; real words minimal. ayin_check: false
+- L3: Right hand intro (ח ל ך ף). ח and ל are the focal keys; ך and ף acknowledged briefly as final-form keys on those fingers, not the pedagogical target (see Decision 10). ayin_check: true from here on
+- L4: Dedicated י lesson (inner reach, right hand)
+- L5: Dedicated ע lesson (inner reach, left hand)
+- L6: Both hands together — all 10 home-row letters; real-word vocabulary now rich enough to dominate Zone B and C
+- L7: י and ע together — inner-reach consolidation
 - L8: Summary challenge with pass criterion
 
 ### Stage 2 — Top Row (ו ר א ק ט ן)
@@ -276,3 +315,7 @@ Lessons are identified by `lesson_id` (preferred) with fallback to `title`. This
 | Composition quality improves with touch typing | Gahshan & Weintraub (2025) — WoTIP program |
 | Hebrew keyboard not designed for Hebrew | SI-1452 history; Yiddish typewriter origin |
 | Touch typing not taught in Israeli schools | Khoury-Shaheen & Weintraub (2026) |
+| Real words scale with letter pool (Decision 9) | Pedagogical principle — meaningful units build associative memory more effectively than invented combinations; no research needed to justify preferring real words when the pool allows them |
+| Final-form letters get reduced early coverage (Decision 10) | Pedagogical principle — deep treatment deferred to Stage 4 where base↔final pairs are taught together; premature equal billing creates mapping confusion |
+| Research citations must be directly actionable (Decision 11) | Pedagogical principle — decorative citations in pre-exercise text add cognitive load without changing learner behavior |
+| `text` vs `session_guidance` field ownership (Decision 12) | Pedagogical principle — operational reminders (including עיניים על המסך) belong in `session_guidance`; `text` is explanation only |
