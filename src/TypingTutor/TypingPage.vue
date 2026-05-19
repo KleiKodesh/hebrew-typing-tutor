@@ -13,6 +13,15 @@
       @continue="continueAfterExpiration"
     />
 
+    <!-- ── Stage intro overlay ── -->
+    <StageIntroOverlay
+      v-if="showStageIntro && currentStage"
+      :stage-title="currentStage.stage_title"
+      :description="currentStage.description"
+      :phase-context="currentStage.phase_context"
+      @done="dismissStageIntro"
+    />
+
     <!-- ── Lesson completion summary ── -->
     <LessonSummaryOverlay
       v-if="showSummary && summaryData"
@@ -40,6 +49,7 @@
       @next-lesson="goNextLesson"
       @next-stage="goNextStage"
       @show-intro="emit('show-intro')"
+      @show-stage-intro="showStageIntro = true"
       @new-user="emit('new-user')"
       @reset-all="handleResetLesson"
     />
@@ -156,6 +166,7 @@ import StatsBar from './StatsBar.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import SessionExpiredOverlay from './SessionExpiredOverlay.vue'
 import LessonSummaryOverlay from './LessonSummaryOverlay.vue'
+import StageIntroOverlay from './StageIntroOverlay.vue'
 import RecallPanel from './RecallPanel.vue'
 import FreeTypingPanel from './FreeTypingPanel.vue'
 import LessonInfoCard from './LessonInfoCard.vue'
@@ -168,10 +179,11 @@ const { userName } = useUserProfile()
 
 const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
 const freeInputRef = ref<InstanceType<typeof FreeTypingPanel> | null>(null)
+const showStageIntro = ref(false)
 
 const {
   typed, accuracy, wpm, progress, lastKey, heldKey, nextKey, mistakeKey,
-  englishWarning, currentLesson, displayText, exerciseMode,
+  englishWarning, currentLesson, currentStage, displayText, exerciseMode,
   currentZone, currentZoneIndex, availableZones,
   recallReady, recallHidden, startRecall,
   sessionSecondsDisplay, sessionWarning, sessionExpired,
@@ -201,6 +213,16 @@ const zoneText = computed(() => {
   const z = currentZone.value ?? 'zone_c'
   return lesson?.exercise_zones?.[z] ?? ''
 })
+
+watch(() => currentStage.value?.stage_id, (stageId) => {
+  if (!stageId) return
+  showStageIntro.value = true
+})
+
+function dismissStageIntro() {
+  showStageIntro.value = false
+  focusInput()
+}
 
 function onBlur() {}
 
