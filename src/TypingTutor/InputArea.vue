@@ -190,27 +190,18 @@ watch(
 .show-text-link:focus, .show-text-link:hover { outline: none; text-decoration: none; }
 
 :deep(span.current) {
-  background: rgba(0, 120, 212, 0.18);
-  color: var(--text-primary);
-  font-weight: 600;
-  border-radius: 3px;
-  padding: 0.1em 0.2em;
+  background: rgba(0, 120, 212, 0.55);
+  color: #fff;
   white-space: nowrap;
 }
 
 :deep(span.correct) {
   color: var(--success-color);
-  background: rgba(16, 124, 16, 0.08);
-  border-radius: 2px;
-  padding: 0.08em 0.16em;
   white-space: nowrap;
 }
 
 :deep(span.wrong) {
   color: var(--error-color);
-  background: rgba(232, 27, 35, 0.1);
-  border-radius: 2px;
-  padding: 0.08em 0.16em;
   text-decoration: underline wavy rgba(239, 68, 68, 0.28);
   white-space: nowrap;
 }

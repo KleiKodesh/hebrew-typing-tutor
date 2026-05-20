@@ -13,15 +13,6 @@
       @continue="continueAfterExpiration"
     />
 
-    <!-- ── Stage intro overlay ── -->
-    <StageIntroOverlay
-      v-if="showStageIntro && currentStage"
-      :stage-title="currentStage.stage_title"
-      :description="currentStage.description"
-      :phase-context="currentStage.phase_context"
-      @done="dismissStageIntro"
-    />
-
     <!-- ── Lesson completion summary ── -->
     <LessonSummaryOverlay
       v-if="showSummary && summaryData"
@@ -30,6 +21,17 @@
       :data="summaryData"
       @stay="dismissSummaryAndStay"
       @advance="dismissSummaryAndAdvance"
+    />
+
+    <!-- ── Redo lesson prompt (reuses summary overlay, no confetti) ── -->
+    <LessonSummaryOverlay
+      v-if="showRedoConfirm && redoSummaryData"
+      title="כבר השלמת את השיעור הזה"
+      advance-label="המשך"
+      stay-label="עשה שוב"
+      :data="redoSummaryData"
+      @stay="confirmRedo"
+      @advance="cancelRedo"
     />
 
     <!-- ── Navigation bar ── -->
@@ -49,7 +51,6 @@
       @next-lesson="goNextLesson"
       @next-stage="goNextStage"
       @show-intro="emit('show-intro')"
-      @show-stage-intro="showStageIntro = true"
       @new-user="emit('new-user')"
       @reset-all="handleResetLesson"
     />
@@ -68,7 +69,7 @@
 
       <!-- Zone progress indicator (only when multiple zones exist) -->
       <div v-if="availableZones.length > 1" class="zone-bar">
-        <div
+        <button
           v-for="(zone, i) in availableZones"
           :key="zone"
           class="zone-pip"
@@ -76,9 +77,12 @@
             'zone-pip--done': i < currentZoneIndex,
             'zone-pip--active': i === currentZoneIndex,
           }"
+          @click="jumpToZone(i)"
+          :aria-label="getZoneName(zone)"
+          :aria-pressed="i === currentZoneIndex"
         >
           <span class="zone-pip-label">{{ getZoneName(zone) }}</span>
-        </div>
+        </button>
       </div>
 
       <!-- Zone text for free mode -->
@@ -166,7 +170,6 @@ import StatsBar from './StatsBar.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import SessionExpiredOverlay from './SessionExpiredOverlay.vue'
 import LessonSummaryOverlay from './LessonSummaryOverlay.vue'
-import StageIntroOverlay from './StageIntroOverlay.vue'
 import RecallPanel from './RecallPanel.vue'
 import FreeTypingPanel from './FreeTypingPanel.vue'
 import LessonInfoCard from './LessonInfoCard.vue'
@@ -179,22 +182,22 @@ const { userName } = useUserProfile()
 
 const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
 const freeInputRef = ref<InstanceType<typeof FreeTypingPanel> | null>(null)
-const showStageIntro = ref(false)
 
 const {
   typed, accuracy, wpm, progress, lastKey, heldKey, nextKey, mistakeKey,
-  englishWarning, currentLesson, currentStage, displayText, exerciseMode,
+  englishWarning, currentLesson, currentStage, allStages, displayText, exerciseMode,
   currentZone, currentZoneIndex, availableZones,
   recallReady, recallHidden, startRecall,
   sessionSecondsDisplay, sessionWarning, sessionExpired,
   ayinAccuracy, showSummary, summaryData,
   dismissSummaryAndAdvance, dismissSummaryAndStay,
+  showRedoConfirm, confirmRedo, cancelRedo, redoSummaryData,
   canGoPrev, canGoNext, canGoPrevStage, canGoNextStage, highlightNextStage,
   lessonStageLabel,
   goPrevLesson, goNextLesson, goPrevStage, goNextStage,
   restartLesson, dismissExpired, continueAfterExpiration,
   onInput, onKeyDown, onKeyUp,
-  clearAllProgressAndSession, currentTarget,
+  clearAllProgressAndSession, currentTarget, jumpToZone,
 } = useTyping({ title: '', text: '' }, userName)
 
 function showRecallPanel() {
@@ -214,15 +217,7 @@ const zoneText = computed(() => {
   return lesson?.exercise_zones?.[z] ?? ''
 })
 
-watch(() => currentStage.value?.stage_id, (stageId) => {
-  if (!stageId) return
-  showStageIntro.value = true
-})
 
-function dismissStageIntro() {
-  showStageIntro.value = false
-  focusInput()
-}
 
 function onBlur() {}
 
@@ -307,6 +302,8 @@ watch(showSummary, (visible) => {
   transition: all 200ms ease;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  padding: 0;
 }
 
 .zone-pip:hover { background: var(--bg-tertiary); border-color: var(--border-color); }

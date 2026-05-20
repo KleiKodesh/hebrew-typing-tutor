@@ -2,7 +2,7 @@
   <div class="summary-overlay">
     <div class="summary-box">
       <div class="summary-title">{{ title }}</div>
-      <div class="summary-stats">
+      <div v-if="data.wpm > 0 || data.accuracy < 100" class="summary-stats">
         <div class="summary-stat">
           <span class="summary-stat-value">{{ data.accuracy }}%</span>
           <span class="summary-stat-label">דיוק</span>
@@ -24,7 +24,7 @@
         הזרת הימנית (ע) מתחת ל-80% — שקול לחזור על שיעור ע לפני שממשיך.
       </div>
       <div class="summary-actions">
-        <button class="summary-btn secondary" @click="$emit('stay')">חזור על השיעור</button>
+        <button class="summary-btn secondary" @click="$emit('stay')">{{ stayLabel ?? 'חזור על השיעור' }}</button>
         <button class="summary-btn primary" @click="$emit('advance')">
           {{ advanceLabel }}
         </button>
@@ -37,6 +37,7 @@
 defineProps<{
   title: string
   advanceLabel: string
+  stayLabel?: string
   data: {
     accuracy: number
     wpm: number

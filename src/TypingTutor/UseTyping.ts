@@ -11,6 +11,7 @@ import { useSessionTimer } from './useSessionTimer'
 import { useZoneProgress } from './useZoneProgress'
 import { useLessonNavigation } from './useLessonNavigation'
 import { useTypingInput } from './useTypingInput'
+import { useUserProfile } from '../composables/useUserProfile'
 
 export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   // ── Per-user key helpers ────────────────────────────────────────────────────
@@ -19,6 +20,10 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     return name ? `user:${name}:` : ''
   }
   function userKey(key: string): string { return `${userPrefix()}${key}` }
+
+  // ── Lesson completion tracking ──────────────────────────────────────────────
+  const userProfile = useUserProfile()
+  const { isLessonCompleted, markLessonCompleted, resetLessonCompleted, getLessonStats } = userProfile
 
   // ── Core state ──────────────────────────────────────────────────────────────
   const typed = ref('')
@@ -55,7 +60,17 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     timeUsedMs: number; hasAyinCheck: boolean
   } | null>(null)
 
+  const showRedoConfirm = ref(false)
+  const pendingRedoLesson = ref<Lesson | null>(null)
+  const pendingRedoStage = ref<Stage | null>(null)
+  const redoSummaryData = ref<ReturnType<typeof getLessonStats>>(null)
+
   function triggerLessonComplete() {
+    const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
+    // Only show summary if this lesson hasn't been completed before
+    if (isLessonCompleted(lessonId)) {
+      return
+    }
     fireConfetti()
     summaryData.value = {
       accuracy: accuracy.value, wpm: wpm.value,
@@ -64,6 +79,12 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
       hasAyinCheck: currentLesson.value.ayin_check ?? false,
     }
     showSummary.value = true
+    markLessonCompleted(lessonId, {
+      accuracy: accuracy.value, wpm: wpm.value,
+      ayinAccuracy: currentLesson.value.ayin_check ? ayinAccuracy.value : null,
+      timeUsedMs: session.sessionElapsedMs.value,
+      hasAyinCheck: currentLesson.value.ayin_check ?? false,
+    })
   }
 
   const zone = useZoneProgress(
@@ -153,6 +174,7 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   const nav = useLessonNavigation(
     allStages, currentStage, currentLesson,
     applyLesson, session.stopSessionTimer,
+    navigateToLesson,
   )
 
   const highlightNextStage = computed(
@@ -169,17 +191,61 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     showSummary.value = false; summaryData.value = null
     zone.currentZoneIndex.value = 0
     resetTyping()
+    // Reset completion flag so congrats shows again when user completes the lesson again
+    const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
+    resetLessonCompleted(lessonId)
   }
 
   function restartLesson() {
     session.stopSessionTimer()
     zone.currentZoneIndex.value = 0
     resetTyping()
+    // Reset completion flag so congrats shows again when user completes the lesson again
+    const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
+    resetLessonCompleted(lessonId)
+  }
+
+  // ── Navigation with completion check ───────────────────────────────────────
+  // All lesson navigation funnels through here so completed lessons always
+  // prompt the user before overwriting their clean state.
+  function navigateToLesson(lesson: Lesson, stage?: Stage) {
+    const lessonId = lesson.lesson_id ?? lesson.title
+    if (isLessonCompleted(lessonId)) {
+      pendingRedoLesson.value = lesson
+      pendingRedoStage.value = stage ?? null
+      redoSummaryData.value = getLessonStats(lessonId)
+      showRedoConfirm.value = true
+    } else {
+      if (stage) currentStage.value = stage
+      applyLesson(lesson)
+    }
   }
 
   function selectLesson(lesson: Lesson) {
     session.stopSessionTimer()
-    applyLesson(lesson)
+    navigateToLesson(lesson)
+  }
+
+  function confirmRedo() {
+    if (pendingRedoLesson.value) {
+      const lessonId = pendingRedoLesson.value.lesson_id ?? pendingRedoLesson.value.title
+      resetLessonCompleted(lessonId)
+      delete lessonProgress.value[lessonId]
+      localStorage.setItem(userKey('lessonProgress'), JSON.stringify(lessonProgress.value))
+      if (pendingRedoStage.value) currentStage.value = pendingRedoStage.value
+      applyLesson(pendingRedoLesson.value)
+      pendingRedoLesson.value = null
+      pendingRedoStage.value = null
+      redoSummaryData.value = null
+    }
+    showRedoConfirm.value = false
+  }
+
+  function cancelRedo() {
+    pendingRedoLesson.value = null
+    pendingRedoStage.value = null
+    redoSummaryData.value = null
+    showRedoConfirm.value = false
   }
 
   // ── Input handling ──────────────────────────────────────────────────────────
@@ -321,6 +387,7 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     sessionMinutesLeft: session.sessionMinutesLeft,
     ayinAccuracy, ayinTotal,
     showSummary, summaryData, dismissSummaryAndAdvance, dismissSummaryAndStay,
+    showRedoConfirm, confirmRedo, cancelRedo, redoSummaryData,
     canGoPrev: nav.canGoPrev, canGoNext: nav.canGoNext,
     canGoPrevStage: nav.canGoPrevStage, canGoNextStage: nav.canGoNextStage,
     highlightNextStage,
@@ -337,5 +404,10 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     continueAfterExpiration: session.continueAfterExpiration,
     clearAllProgress, clearAllProgressAndSession, generateWeakLesson,
     currentTarget: zone.currentTarget,
+    jumpToZone: (index: number) => {
+      zone.clearAutoAdvance()
+      zone.currentZoneIndex.value = index
+      resetZone()
+    },
   }
 }

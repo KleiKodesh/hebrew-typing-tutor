@@ -8,6 +8,7 @@ export function useLessonNavigation(
   currentLesson: Ref<Lesson>,
   applyLesson: (lesson: Lesson) => void,
   stopSessionTimer: () => void,
+  navigateToLesson?: (lesson: Lesson, stage?: Stage) => void,
 ) {
   const currentStageIndex = computed(() =>
     allStages.value.findIndex((s) => s.stage_id === currentStage.value?.stage_id)
@@ -53,13 +54,15 @@ export function useLessonNavigation(
   function goPrevLesson() {
     if (!canGoPrev.value || !currentStage.value) return
     stopSessionTimer()
-    applyLesson(currentStage.value.lessons[currentLessonIndex.value - 1])
+    const lesson = currentStage.value.lessons[currentLessonIndex.value - 1]
+    ;(navigateToLesson ?? applyLesson)(lesson)
   }
 
   function goNextLesson() {
     if (!canGoNext.value || !currentStage.value) return
     stopSessionTimer()
-    applyLesson(currentStage.value.lessons[currentLessonIndex.value + 1])
+    const lesson = currentStage.value.lessons[currentLessonIndex.value + 1]
+    ;(navigateToLesson ?? applyLesson)(lesson)
   }
 
   function goPrevStage() {

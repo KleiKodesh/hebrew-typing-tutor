@@ -7,6 +7,18 @@ function introSeenKey(name: string): string {
   return `user:${name}:introSeen`
 }
 
+function stageIntroSeenKey(name: string, stageId: string): string {
+  return `user:${name}:stageIntroSeen:${stageId}`
+}
+
+function lessonCompletedKey(name: string, lessonId: string): string {
+  return `user:${name}:lessonCompleted:${lessonId}`
+}
+
+function lessonStatsKey(name: string, lessonId: string): string {
+  return `user:${name}:lessonStats:${lessonId}`
+}
+
 function userDataPrefix(name: string): string {
   return `user:${name}:`
 }
@@ -56,6 +68,14 @@ if (legacyIntroSeen !== null && userName.value) {
   localStorage.removeItem('introSeen')
 }
 
+export type LessonStats = {
+  accuracy: number
+  wpm: number
+  ayinAccuracy: number | null
+  timeUsedMs: number
+  hasAyinCheck: boolean
+}
+
 export function useUserProfile() {
   function addUser(name: string) {
     const trimmed = name.trim()
@@ -90,6 +110,54 @@ export function useUserProfile() {
     introSeen.value = false
     if (userName.value) {
       localStorage.removeItem(introSeenKey(userName.value))
+    }
+  }
+
+  function isStageIntroSeen(stageId: string): boolean {
+    if (!userName.value) return false
+    return localStorage.getItem(stageIntroSeenKey(userName.value, stageId)) === 'true'
+  }
+
+  function markStageIntroSeen(stageId: string) {
+    if (userName.value) {
+      localStorage.setItem(stageIntroSeenKey(userName.value, stageId), 'true')
+    }
+  }
+
+  function resetStageIntro(stageId: string) {
+    if (userName.value) {
+      localStorage.removeItem(stageIntroSeenKey(userName.value, stageId))
+    }
+  }
+
+  function isLessonCompleted(lessonId: string): boolean {
+    if (!userName.value) return false
+    return localStorage.getItem(lessonCompletedKey(userName.value, lessonId)) === 'true'
+  }
+
+  function markLessonCompleted(lessonId: string, stats?: LessonStats) {
+    if (userName.value) {
+      localStorage.setItem(lessonCompletedKey(userName.value, lessonId), 'true')
+      if (stats) {
+        localStorage.setItem(lessonStatsKey(userName.value, lessonId), JSON.stringify(stats))
+      }
+    }
+  }
+
+  function resetLessonCompleted(lessonId: string) {
+    if (userName.value) {
+      localStorage.removeItem(lessonCompletedKey(userName.value, lessonId))
+      localStorage.removeItem(lessonStatsKey(userName.value, lessonId))
+    }
+  }
+
+  function getLessonStats(lessonId: string): LessonStats | null {
+    if (!userName.value) return null
+    try {
+      const raw = localStorage.getItem(lessonStatsKey(userName.value, lessonId))
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
     }
   }
 
@@ -128,5 +196,12 @@ export function useUserProfile() {
     resetIntro,
     clearUser,
     deleteUser,
+    isStageIntroSeen,
+    markStageIntroSeen,
+    resetStageIntro,
+    isLessonCompleted,
+    markLessonCompleted,
+    resetLessonCompleted,
+    getLessonStats,
   }
 }

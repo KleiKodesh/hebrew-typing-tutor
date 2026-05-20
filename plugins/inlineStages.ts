@@ -8,7 +8,7 @@ const RESOLVED_ID = '\0virtual:stages'
 const DEV_MODULE = [
   'export const stages = Promise.all(',
   '  [1,2,3,4,5,6].map(n =>',
-  "    fetch('/stage_' + n + '.json').then(r => r.ok ? r.json() : null)",
+  "    fetch(import.meta.env.BASE_URL + 'stage_' + n + '.json').then(r => r.ok ? r.json() : null)",
   '  )',
   ').then(results => results.filter(Boolean));',
 ].join('\n')

@@ -63,17 +63,6 @@
         </svg>
       </button>
       <button
-        class="nav-button info-button"
-        @click="$emit('show-stage-intro')"
-        title="הצג הקדמה לשלב"
-      >
-        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M12 8.5V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 15.5H12.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <button
         class="nav-button dark-toggle"
         @click="toggleDarkMode()"
         :title="isDarkMode ? 'מצב בהיר' : 'מצב אפל'"
@@ -112,7 +101,7 @@ defineProps<{
   lessonStageLabel?: string
 }>()
 
-const emit = defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro', 'show-stage-intro', 'new-user', 'reset-all'])
+const emit = defineEmits(['prev-stage', 'prev-lesson', 'restart-lesson', 'next-lesson', 'next-stage', 'show-intro', 'new-user', 'reset-all'])
 
 function handleReset() {
   emit('reset-all')
