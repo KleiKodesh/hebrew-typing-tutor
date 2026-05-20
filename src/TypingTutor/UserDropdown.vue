@@ -19,7 +19,7 @@
     <!-- Dropdown panel -->
     <Teleport to="body">
       <transition name="dropdown">
-        <div v-if="isOpen" class="dropdown-panel" role="listbox" :aria-label="'בחר משתמש'" :style="dropdownStyle" @click.self="close">
+        <div v-if="isOpen" ref="panelEl" class="dropdown-panel" role="listbox" :aria-label="'בחר משתמש'" :style="dropdownStyle">
 
           <!-- Existing users -->
           <div v-if="allUsers.length" class="dropdown-section">
@@ -106,6 +106,7 @@ const { userName, allUsers, switchUser, deleteUser } = useUserProfile()
 
 const isOpen = ref(false)
 const wrapEl = ref<HTMLElement | null>(null)
+const panelEl = ref<HTMLElement | null>(null)
 const deleteConfirmUser = ref<string | null>(null)
 const dropdownStyle = ref<{ top: string; left: string }>({ top: '0', left: '0' })
 
@@ -165,7 +166,9 @@ function submitNewUser() {
 // Close on outside click
 function onDocClick(e: MouseEvent) {
   if (wrapEl.value && !wrapEl.value.contains(e.target as Node)) {
-    close()
+    if (panelEl.value && !panelEl.value.contains(e.target as Node)) {
+      close()
+    }
   }
 }
 
@@ -225,7 +228,7 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  z-index: 1000;
+  z-index: 400;
   overflow: hidden;
   min-width: 200px;
   max-width: 300px;
