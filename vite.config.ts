@@ -9,6 +9,8 @@ export default defineConfig(({ command }) => {
   const isBuild = command === 'build'
 
   return {
+    base: '/hebrew_immersive_typing_tutor/',
+
     plugins: [
       vue(),
 

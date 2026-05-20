@@ -29,7 +29,8 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   const lastKey = ref('')
   const heldKey = ref('')
   const mistakeKey = ref('')
-  const lessonProgress = ref<Record<string, string>>({})
+  type LessonSave = { typed: string; zoneIndex: number }
+  const lessonProgress = ref<Record<string, LessonSave | string>>({})
   const weak = ref<Record<string, number>>({})
   const currentLesson = ref<Lesson>(initialLesson)
   const currentStage = ref<Stage | null>(null)
@@ -123,7 +124,19 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     const lessonId = lesson.lesson_id ?? lesson.title
     const saved = lessonProgress.value[lessonId]
     if (saved) {
-      typed.value = saved
+      if (typeof saved === 'string') {
+        // Legacy format: plain string. Restore zone index BEFORE typed so
+        // isZoneDone is evaluated against the correct zone target.
+        zone.currentZoneIndex.value = 0
+        typed.value = saved
+        lessonProgress.value[lessonId] = { typed: saved, zoneIndex: 0 }
+      } else {
+        // Current format: { typed, zoneIndex }. Restore zone index BEFORE typed
+        // so isZoneDone is evaluated against the correct zone target, not zone 0.
+        const maxIndex = zone.availableZones.value.length - 1
+        zone.currentZoneIndex.value = Math.min(saved.zoneIndex, maxIndex)
+        typed.value = saved.typed
+      }
       if (typed.value.length > 0) start.value = new Date()
     }
     accuracy.value = 100; wpm.value = 0
@@ -172,8 +185,15 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   // ── Input handling ──────────────────────────────────────────────────────────
   function saveLessonProgress() {
     const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
-    lessonProgress.value[lessonId] = typed.value
+    lessonProgress.value[lessonId] = { typed: typed.value, zoneIndex: zone.currentZoneIndex.value }
     localStorage.setItem(userKey('lessonProgress'), JSON.stringify(lessonProgress.value))
+    const stageIndex = currentStage.value
+      ? allStages.value.findIndex((s) => s.stage_id === currentStage.value!.stage_id)
+      : 0
+    localStorage.setItem(
+      userKey('currentPosition'),
+      JSON.stringify({ stageIndex: Math.max(0, stageIndex), lessonId })
+    )
   }
 
   const input = useTypingInput(
@@ -191,6 +211,7 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     lessonProgress.value = {}; weak.value = {}
     localStorage.removeItem(userKey('lessonProgress'))
     localStorage.removeItem(userKey('weak'))
+    localStorage.removeItem(userKey('currentPosition'))
   }
 
   function clearAllProgressAndSession() {
@@ -220,22 +241,35 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     try {
       const results: (Stage | null)[] = await Promise.resolve(bundledStages)
       for (const stage of results) { if (stage) allStages.value.push(stage as Stage) }
-      if (allStages.value.length > 0) {
-        currentStage.value = allStages.value[0]
-        currentLesson.value = allStages.value[0].lessons[0]
-      }
     } catch (error) { console.error('Failed to load stages:', error) }
     const savedWeak = localStorage.getItem(userKey('weak'))
     if (savedWeak) weak.value = JSON.parse(savedWeak)
     const savedProgress = localStorage.getItem(userKey('lessonProgress'))
     if (savedProgress) lessonProgress.value = JSON.parse(savedProgress)
+    const savedPosition = localStorage.getItem(userKey('currentPosition'))
+    if (savedPosition && allStages.value.length > 0) {
+      try {
+        const { stageIndex, lessonId } = JSON.parse(savedPosition)
+        const stage = allStages.value[Math.min(stageIndex, allStages.value.length - 1)]
+        if (stage) {
+          currentStage.value = stage
+          const lesson = stage.lessons.find((l) => (l.lesson_id ?? l.title) === lessonId)
+          applyLesson(lesson ?? stage.lessons[0])
+          return
+        }
+      } catch (e) { console.error('Failed to restore position', e) }
+    }
+    if (allStages.value.length > 0) {
+      currentStage.value = allStages.value[0]
+      applyLesson(allStages.value[0].lessons[0])
+    }
   })
 
   watch(
     () => ({ stage: nav.currentStageIndex.value, lesson: nav.currentLessonIndex.value }),
     () => {
       if (nav.stageProgression.value && nav.lessonProgression.value)
-        document.title = `הקלדה עיברית — ${nav.lessonStageLabel.value}`
+        document.title = `הקלדה עברית — ${nav.lessonStageLabel.value}`
     },
     { immediate: true }
   )
@@ -247,8 +281,23 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
       const savedProgress = localStorage.getItem(userKey('lessonProgress'))
       lessonProgress.value = savedProgress ? JSON.parse(savedProgress) : {}
       session.reloadSessionForUser()
-      zone.currentZoneIndex.value = 0
-      resetTyping()
+      const savedPosition = localStorage.getItem(userKey('currentPosition'))
+      if (savedPosition && allStages.value.length > 0) {
+        try {
+          const { stageIndex, lessonId } = JSON.parse(savedPosition)
+          const stage = allStages.value[Math.min(stageIndex, allStages.value.length - 1)]
+          if (stage) {
+            currentStage.value = stage
+            const lesson = stage.lessons.find((l) => (l.lesson_id ?? l.title) === lessonId)
+            applyLesson(lesson ?? stage.lessons[0])
+            return
+          }
+        } catch (e) { console.error('Failed to restore position', e) }
+      }
+      if (allStages.value.length > 0) {
+        currentStage.value = allStages.value[0]
+        applyLesson(allStages.value[0].lessons[0])
+      }
     })
   }
 
