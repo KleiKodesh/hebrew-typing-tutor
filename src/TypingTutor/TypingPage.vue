@@ -6,6 +6,16 @@
       ⚠️ הקלדה באנגלית — עבור לעברית
     </div>
 
+    <!-- ── Stage intro overlay ── -->
+    <StageIntroOverlay
+      v-if="showStageIntro && stageIntroData"
+      :stage-title="stageIntroData.title"
+      :stage-subtitle="stageIntroData.subtitle"
+      :description="stageIntroData.description"
+      :phase-context="stageIntroData.context"
+      @done="dismissStageIntro"
+    />
+
     <!-- ── Session expired overlay ── -->
     <SessionExpiredOverlay
       v-if="sessionExpired"
@@ -173,15 +183,19 @@ import LessonSummaryOverlay from './LessonSummaryOverlay.vue'
 import RecallPanel from './RecallPanel.vue'
 import FreeTypingPanel from './FreeTypingPanel.vue'
 import LessonInfoCard from './LessonInfoCard.vue'
+import StageIntroOverlay from './StageIntroOverlay.vue'
 import { useTyping, getZoneName } from './UseTyping'
 import { useUserProfile } from '../composables/useUserProfile'
 
 const emit = defineEmits<{ 'show-intro': []; 'new-user': [] }>()
 
-const { userName } = useUserProfile()
+const { userName, isStageIntroSeen, markStageIntroSeen } = useUserProfile()
 
 const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
 const freeInputRef = ref<InstanceType<typeof FreeTypingPanel> | null>(null)
+
+const showStageIntro = ref(false)
+const stageIntroData = ref<{ title: string; subtitle?: string; description: string; context?: string } | null>(null)
 
 const {
   typed, accuracy, wpm, progress, lastKey, heldKey, nextKey, mistakeKey,
@@ -237,6 +251,24 @@ function focusInput() {
 
 watch(() => currentLesson.value?.lesson_id, () => focusInput())
 watch(() => currentZoneIndex.value, () => focusInput())
+
+// ── Stage intro ──────────────────────────────────────────────────────────────
+watch(() => currentStage.value, (stage) => {
+  if (stage && !isStageIntroSeen(stage.stage_id)) {
+    stageIntroData.value = {
+      title: stage.stage_title,      subtitle: stage.stage_subtitle,      description: stage.description,
+      context: stage.phase_context,
+    }
+    showStageIntro.value = true
+  }
+})
+
+function dismissStageIntro() {
+  if (currentStage.value) {
+    markStageIntroSeen(currentStage.value.stage_id)
+  }
+  showStageIntro.value = false
+}
 
 // ── Personalised compliments ──────────────────────────────────────────────────
 const compliments = ['כל הכבוד', 'עבודה מצוינת', 'מדהים', 'ממשיכים קדימה', 'מושלם']

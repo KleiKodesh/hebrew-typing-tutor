@@ -20,6 +20,7 @@ export interface Lesson {
 export interface Stage {
   stage_id: string
   stage_title: string
+  stage_subtitle?: string
   description: string
   phase_context?: string
   high_frequency_anchor_words?: string[]
