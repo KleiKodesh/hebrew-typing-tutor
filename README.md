@@ -1,19 +1,11 @@
-# Hebrew Immersive Typing Tutor
+# הקלדה עברית
 
-A browser-based typing tutor for Hebrew with live keyboard visualization, hand overlays, and progress tracking.
+תוכנת לימוד הקלדה עיוורת בעברית מבוססת דפדפן, עם הדמיית מקלדת חיה, תצוגת ידיים, ומעקב אחר התקדמות הלמידה.
 
-## Quick start
+לא באמת מצאתי תוכנה ללימוד הקלדה בעברית למבוגרים שלא מרגישה ילדותית או משעממת להפליא. אז ניסיתי ליצור משהו קצת אחר — חוויית למידה נגישה, מודרנית ובוגרת יותר ממה שקיים היום בשוק.
 
-1. `npm install`
-2. `npm run dev`
+המטרה הייתה לבנות משהו שמרגיש יותר כמו רכישת מיומנות — ופחות כמו שיעור מחשבים מ־2004.
 
-## Key structure
+התוכנה מבוססת על מחקרים מתחום הלמידה המוטורית והקלדה עיוורת, וסוטה מעט משיטת ה״כח כח כח״ המוכרת, לטובת תרגול שמרגיש טבעי, זורם והדרגתי יותר.
 
-- `src/KeyboardDisplay/` — reusable keyboard component, sizing, hand overlay, and shared keyboard layout helpers
-- `src/TypingTutor/` — typing lesson UI and session logic
-- `src/Debug/` — development tools such as the hand calibration simulator
-
-## Notes
-
-- The app builds as a single file via Vite
-- Calibration data is stored in `hand-offsets/` and used by the debug simulator
+המיקוד הוא לא רק במהירות, אלא גם בפיתוח זיכרון שרירי, דיוק, נוחות ותהליך למידה שמרגיש חי ומעודד — עם משוב חזותי בזמן אמת והבנה טובה יותר של מיקום האצבעות על המקלדת.
