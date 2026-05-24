@@ -37,7 +37,6 @@ export function useZoneProgress(
 
   const currentTarget = computed(() => {
     const lesson = currentLesson.value
-    if (exerciseMode.value === 'free') return ''
     const zone = currentZone.value
     const zoneText = getZoneText(lesson, zone)
     if (zoneText) return zoneText
@@ -51,7 +50,6 @@ export function useZoneProgress(
   })
 
   const isZoneDone = computed(() => {
-    if (exerciseMode.value === 'free') return false
     const t = currentTarget.value
     return t.length > 0 && typed.value.length >= t.length
   })

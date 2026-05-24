@@ -68,12 +68,6 @@ export function useTypingInput(
       startSessionTimer()
     }
 
-    if (exerciseMode.value === 'free') {
-      lastKey.value = typed.value.slice(-1)
-      saveLessonProgress()
-      return
-    }
-
     const target = currentTarget.value
     let correct = 0, ayinC = 0, ayinT = 0
 
