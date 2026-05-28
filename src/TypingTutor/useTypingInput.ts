@@ -20,8 +20,6 @@ export function useTypingInput(
   currentTarget: Ref<string>,
   sessionExpired: Ref<boolean>,
   startSessionTimer: () => void,
-  saveLessonProgress: () => void,
-  saveWeak: () => void,
 ) {
   const englishWarning = ref(false)
 
@@ -95,9 +93,6 @@ export function useTypingInput(
     wpm.value = elapsed > 0 ? Math.round(typed.value.length / 5 / elapsed) : 0
     progress.value = Math.min(100, Math.round((typed.value.length / target.length) * 100))
     lastKey.value = typed.value.slice(-1)
-
-    saveLessonProgress()
-    saveWeak()
   }
 
   onUnmounted(() => {

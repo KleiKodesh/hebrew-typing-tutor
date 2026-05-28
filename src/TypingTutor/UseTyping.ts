@@ -12,6 +12,7 @@ import { useZoneProgress } from './useZoneProgress'
 import { useLessonNavigation } from './useLessonNavigation'
 import { useTypingInput } from './useTypingInput'
 import { useUserProfile } from '../composables/useUserProfile'
+import { usePersistence } from '../composables/usePersistence'
 
 export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   // ── Per-user key helpers ────────────────────────────────────────────────────
@@ -21,30 +22,87 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   }
   function userKey(key: string): string { return `${userPrefix()}${key}` }
 
+  // ── Persistence ────────────────────────────────────────────────────────────
+  const persistence = usePersistence()
+
   // ── Lesson completion tracking ──────────────────────────────────────────────
   const userProfile = useUserProfile()
   const { isLessonCompleted, markLessonCompleted, resetLessonCompleted, getLessonStats } = userProfile
 
-  // ── Core state ──────────────────────────────────────────────────────────────
-  const typed = ref('')
-  const accuracy = ref(100)
-  const wpm = ref(0)
-  const progress = ref(0)
-  const start = ref<Date | null>(null)
-  const lastKey = ref('')
-  const heldKey = ref('')
-  const mistakeKey = ref('')
-  type LessonSave = { typed: string; zoneIndex: number }
-  const lessonProgress = ref<Record<string, LessonSave | string>>({})
-  const weak = ref<Record<string, number>>({})
-  const currentLesson = ref<Lesson>(initialLesson)
-  const currentStage = ref<Stage | null>(null)
-  const allStages = ref<Stage[]>([])
+  // ── Completion tracking (per-stage, managed by persistence) ──────────────────
+  const stageCompletions = ref<Record<string, any>>({})
 
-  const exerciseMode = computed<ExerciseMode>(
-    () => (currentLesson.value.exercise_mode as ExerciseMode) ?? 'copy'
-  )
+  function getStageCompletion(stageId: string) {
+    if (!userName?.value) return { completed: false, lessons: [] }
+    if (!stageCompletions.value[stageId]) {
+      stageCompletions.value[stageId] = persistence.loadStageCompletion(userName.value, stageId)
+    }
+    return stageCompletions.value[stageId]
+  }
 
+  function isStageCompleted(stageId: string): boolean {
+    return getStageCompletion(stageId).completed ?? false
+  }
+
+  function markZoneCompleted(stageId: string, lessonId: string, zoneIndex: number) {
+    const completion = getStageCompletion(stageId)
+    let lessonObj = completion.lessons.find((l: any) => l.id === lessonId)
+    
+    if (!lessonObj) {
+      lessonObj = { id: lessonId, zones: [] }
+      completion.lessons.push(lessonObj)
+    }
+    
+    if (!lessonObj.zones.includes(zoneIndex)) {
+      lessonObj.zones.push(zoneIndex)
+    }
+    
+    if (userName?.value) {
+      persistence.saveStageCompletion(userName.value, stageId, completion)
+    }
+  }
+
+  function isZoneCompleted(stageId: string, lessonId: string, zoneIndex: number): boolean {
+    const completion = getStageCompletion(stageId)
+    const lessonObj = completion.lessons.find((l: any) => l.id === lessonId)
+    return lessonObj?.zones.includes(zoneIndex) ?? false
+  }
+
+  function markLessonCompletedLocal(stageId: string, lessonId: string) {
+    const completion = getStageCompletion(stageId)
+    const exists = completion.lessons.some((l: any) => l.id === lessonId)
+    
+    if (!exists) {
+      completion.lessons.push({ id: lessonId, zones: [] })
+    }
+    
+    if (userName?.value) {
+      persistence.saveStageCompletion(userName.value, stageId, completion)
+    }
+  }
+
+  function isLessonCompletedLocal(stageId: string, lessonId: string): boolean {
+    const completion = getStageCompletion(stageId)
+    return completion.lessons.some((l: any) => l.id === lessonId) ?? false
+  }
+
+  function markStageCompleted(stageId: string) {
+    const completion = getStageCompletion(stageId)
+    completion.completed = true
+    if (userName?.value) {
+      persistence.saveStageCompletion(userName.value, stageId, completion)
+    }
+  }
+
+  function resetStageCompletion(stageId: string) {
+    const completion = getStageCompletion(stageId)
+    completion.completed = false
+    completion.lessons = []
+    if (userName?.value) {
+      persistence.saveStageCompletion(userName.value, stageId, completion)
+    }
+  }
+  
   // ── Sub-composables ─────────────────────────────────────────────────────────
   const session = useSessionTimer(userKey)
 
@@ -85,6 +143,19 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
       timeUsedMs: session.sessionElapsedMs.value,
       hasAyinCheck: currentLesson.value.ayin_check ?? false,
     })
+    
+    // Mark lesson completed in hierarchical structure
+    if (currentStage.value) {
+      const stageId = currentStage.value.stage_id
+      markLessonCompletedLocal(stageId, lessonId)
+      
+      // Check if all lessons in this stage are completed, if so mark stage as completed
+      const allLessonsInStage = currentStage.value.lessons.map((l) => l.lesson_id ?? l.title)
+      const allCompleted = allLessonsInStage.every((id) => isLessonCompletedLocal(stageId, id))
+      if (allCompleted) {
+        markStageCompleted(stageId)
+      }
+    }
   }
 
   const zone = useZoneProgress(
@@ -138,27 +209,15 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   }
 
   // ── Lesson application ──────────────────────────────────────────────────────
-  function applyLesson(lesson: Lesson) {
+  function applyLesson(lesson: Lesson, restoreZoneIndex?: number) {
     currentLesson.value = lesson
-    zone.currentZoneIndex.value = 0
     resetTyping()
-    const lessonId = lesson.lesson_id ?? lesson.title
-    const saved = lessonProgress.value[lessonId]
-    if (saved) {
-      if (typeof saved === 'string') {
-        // Legacy format: plain string. Restore zone index BEFORE typed so
-        // isZoneDone is evaluated against the correct zone target.
-        zone.currentZoneIndex.value = 0
-        typed.value = saved
-        lessonProgress.value[lessonId] = { typed: saved, zoneIndex: 0 }
-      } else {
-        // Current format: { typed, zoneIndex }. Restore zone index BEFORE typed
-        // so isZoneDone is evaluated against the correct zone target, not zone 0.
-        const maxIndex = zone.availableZones.value.length - 1
-        zone.currentZoneIndex.value = Math.min(saved.zoneIndex, maxIndex)
-        typed.value = saved.typed
-      }
-      if (typed.value.length > 0) start.value = new Date()
+    // Restore zone index if provided, otherwise start at zone 0
+    if (restoreZoneIndex !== undefined) {
+      const maxIndex = zone.availableZones.value.length - 1
+      zone.currentZoneIndex.value = Math.min(restoreZoneIndex, maxIndex)
+    } else {
+      zone.currentZoneIndex.value = 0
     }
     accuracy.value = 100; wpm.value = 0
     progress.value = Math.min(
@@ -194,6 +253,15 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     // Reset completion flag so congrats shows again when user completes the lesson again
     const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
     resetLessonCompleted(lessonId)
+    // Reset local completion tracking
+    if (currentStage.value && userName?.value) {
+      const stageId = currentStage.value.stage_id
+      const completion = persistence.loadStageCompletion(userName.value, stageId)
+      completion.lessons = completion.lessons.filter((l: any) => l.id !== lessonId)
+      completion.completed = false
+      persistence.saveStageCompletion(userName.value, stageId, completion)
+      stageCompletions.value[stageId] = completion
+    }
   }
 
   function restartLesson() {
@@ -203,6 +271,15 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     // Reset completion flag so congrats shows again when user completes the lesson again
     const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
     resetLessonCompleted(lessonId)
+    // Reset local completion tracking
+    if (currentStage.value && userName?.value) {
+      const stageId = currentStage.value.stage_id
+      const completion = persistence.loadStageCompletion(userName.value, stageId)
+      completion.lessons = completion.lessons.filter((l: any) => l.id !== lessonId)
+      completion.completed = false
+      persistence.saveStageCompletion(userName.value, stageId, completion)
+      stageCompletions.value[stageId] = completion
+    }
   }
 
   // ── Navigation with completion check ───────────────────────────────────────
@@ -230,8 +307,17 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     if (pendingRedoLesson.value) {
       const lessonId = pendingRedoLesson.value.lesson_id ?? pendingRedoLesson.value.title
       resetLessonCompleted(lessonId)
-      delete lessonProgress.value[lessonId]
-      localStorage.setItem(userKey('lessonProgress'), JSON.stringify(lessonProgress.value))
+      
+      // Reset local completion tracking
+      if (pendingRedoStage.value && userName?.value) {
+        const stageId = pendingRedoStage.value.stage_id
+        const completion = persistence.loadStageCompletion(userName.value, stageId)
+        completion.lessons = completion.lessons.filter((l: any) => l.id !== lessonId)
+        completion.completed = false
+        persistence.saveStageCompletion(userName.value, stageId, completion)
+        stageCompletions.value[stageId] = completion
+      }
+      
       if (pendingRedoStage.value) currentStage.value = pendingRedoStage.value
       applyLesson(pendingRedoLesson.value)
       pendingRedoLesson.value = null
@@ -249,35 +335,21 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   }
 
   // ── Input handling ──────────────────────────────────────────────────────────
-  function saveLessonProgress() {
-    const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
-    lessonProgress.value[lessonId] = { typed: typed.value, zoneIndex: zone.currentZoneIndex.value }
-    localStorage.setItem(userKey('lessonProgress'), JSON.stringify(lessonProgress.value))
-    const stageIndex = currentStage.value
-      ? allStages.value.findIndex((s) => s.stage_id === currentStage.value!.stage_id)
-      : 0
-    localStorage.setItem(
-      userKey('currentPosition'),
-      JSON.stringify({ stageIndex: Math.max(0, stageIndex), lessonId })
-    )
-  }
-
   const input = useTypingInput(
     typed, accuracy, wpm, progress, start, lastKey, heldKey, mistakeKey,
     weak, ayinCorrect, ayinTotal, currentLesson, exerciseMode,
     zone.currentTarget, session.sessionExpired,
     session.startSessionTimer,
-    saveLessonProgress,
-    () => localStorage.setItem(userKey('weak'), JSON.stringify(weak.value)),
   )
 
   // ── Progress persistence ────────────────────────────────────────────────────
   function clearAllProgress() {
     resetTyping()
-    lessonProgress.value = {}; weak.value = {}
-    localStorage.removeItem(userKey('lessonProgress'))
-    localStorage.removeItem(userKey('weak'))
-    localStorage.removeItem(userKey('currentPosition'))
+    weak.value = {}
+    stageCompletions.value = {}
+    if (userName?.value) {
+      persistence.resetUserData(userName.value)
+    }
   }
 
   function clearAllProgressAndSession() {
@@ -302,29 +374,27 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     resetTyping()
   }
 
-  // ── Bootstrap ───────────────────────────────────────────────────────────────
+  // ── Bootstrap ──────────────────────────────────────────────────────────────────
   onMounted(async () => {
     try {
       const results: (Stage | null)[] = await Promise.resolve(bundledStages)
       for (const stage of results) { if (stage) allStages.value.push(stage as Stage) }
     } catch (error) { console.error('Failed to load stages:', error) }
-    const savedWeak = localStorage.getItem(userKey('weak'))
-    if (savedWeak) weak.value = JSON.parse(savedWeak)
-    const savedProgress = localStorage.getItem(userKey('lessonProgress'))
-    if (savedProgress) lessonProgress.value = JSON.parse(savedProgress)
-    const savedPosition = localStorage.getItem(userKey('currentPosition'))
-    if (savedPosition && allStages.value.length > 0) {
-      try {
-        const { stageIndex, lessonId } = JSON.parse(savedPosition)
-        const stage = allStages.value[Math.min(stageIndex, allStages.value.length - 1)]
-        if (stage) {
-          currentStage.value = stage
-          const lesson = stage.lessons.find((l) => (l.lesson_id ?? l.title) === lessonId)
-          applyLesson(lesson ?? stage.lessons[0])
-          return
-        }
-      } catch (e) { console.error('Failed to restore position', e) }
+
+    // Load user data from persistence if user is set
+    if (userName?.value && allStages.value.length > 0) {
+      weak.value = persistence.loadWeak(userName.value)
+      const position = persistence.loadPosition(userName.value)
+      const stage = allStages.value[Math.min(position.stageIndex, allStages.value.length - 1)]
+      if (stage) {
+        currentStage.value = stage
+        const lesson = stage.lessons.find((l) => (l.lesson_id ?? l.title) === position.lessonId)
+        applyLesson(lesson ?? stage.lessons[0], position.zoneIndex ?? 0)
+        return
+      }
     }
+
+    // Default: start at first stage
     if (allStages.value.length > 0) {
       currentStage.value = allStages.value[0]
       applyLesson(allStages.value[0].lessons[0])
@@ -340,27 +410,69 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
     { immediate: true }
   )
 
+  // ── Position watcher: save to persistence when position changes ───────────────
+  watch(
+    () => ({
+      stage: currentStage.value?.stage_id,
+      lesson: currentLesson.value?.lesson_id ?? currentLesson.value?.title,
+      zone: zone.currentZoneIndex.value,
+    }),
+    () => {
+      if (userName?.value) {
+        const stageIndex = currentStage.value
+          ? allStages.value.findIndex((s) => s.stage_id === currentStage.value!.stage_id)
+          : 0
+        const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
+        persistence.savePosition(userName.value, {
+          stageIndex: Math.max(0, stageIndex),
+          lessonId,
+          zoneIndex: zone.currentZoneIndex.value,
+        })
+      }
+    }
+  )
+
+  // ── Zone completion tracking ────────────────────────────────────────────────
+  watch(
+    () => zone.isComplete.value,
+    (isComplete) => {
+      if (isComplete && currentStage.value) {
+        const stageId = currentStage.value.stage_id
+        const lessonId = currentLesson.value.lesson_id ?? currentLesson.value.title
+        const zoneIndex = zone.currentZoneIndex.value
+        markZoneCompleted(stageId, lessonId, zoneIndex)
+      }
+    }
+  )
+
+  // ── Weak letters watcher ────────────────────────────────────────────────────
+  watch(
+    () => weak.value,
+    () => {
+      if (userName?.value) {
+        persistence.saveWeak(userName.value, weak.value)
+      }
+    },
+    { deep: true }
+  )
+
   if (userName) {
     watch(userName, () => {
-      const savedWeak = localStorage.getItem(userKey('weak'))
-      weak.value = savedWeak ? JSON.parse(savedWeak) : {}
-      const savedProgress = localStorage.getItem(userKey('lessonProgress'))
-      lessonProgress.value = savedProgress ? JSON.parse(savedProgress) : {}
+      if (!userName.value || allStages.value.length === 0) return
+
+      // Reload all user data from persistence
+      weak.value = persistence.loadWeak(userName.value)
+      stageCompletions.value = {} // Clear cache, will be loaded on demand
       session.reloadSessionForUser()
-      const savedPosition = localStorage.getItem(userKey('currentPosition'))
-      if (savedPosition && allStages.value.length > 0) {
-        try {
-          const { stageIndex, lessonId } = JSON.parse(savedPosition)
-          const stage = allStages.value[Math.min(stageIndex, allStages.value.length - 1)]
-          if (stage) {
-            currentStage.value = stage
-            const lesson = stage.lessons.find((l) => (l.lesson_id ?? l.title) === lessonId)
-            applyLesson(lesson ?? stage.lessons[0])
-            return
-          }
-        } catch (e) { console.error('Failed to restore position', e) }
-      }
-      if (allStages.value.length > 0) {
+
+      // Restore position
+      const position = persistence.loadPosition(userName.value)
+      const stage = allStages.value[Math.min(position.stageIndex, allStages.value.length - 1)]
+      if (stage) {
+        currentStage.value = stage
+        const lesson = stage.lessons.find((l) => (l.lesson_id ?? l.title) === position.lessonId)
+        applyLesson(lesson ?? stage.lessons[0], position.zoneIndex ?? 0)
+      } else {
         currentStage.value = allStages.value[0]
         applyLesson(allStages.value[0].lessons[0])
       }

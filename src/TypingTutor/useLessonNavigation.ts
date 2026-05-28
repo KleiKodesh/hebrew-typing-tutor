@@ -55,30 +55,30 @@ export function useLessonNavigation(
     if (!canGoPrev.value || !currentStage.value) return
     stopSessionTimer()
     const lesson = currentStage.value.lessons[currentLessonIndex.value - 1]
-    ;(navigateToLesson ?? applyLesson)(lesson)
+    ;(navigateToLesson ?? applyLesson)(lesson, currentStage.value)
   }
 
   function goNextLesson() {
     if (!canGoNext.value || !currentStage.value) return
     stopSessionTimer()
     const lesson = currentStage.value.lessons[currentLessonIndex.value + 1]
-    ;(navigateToLesson ?? applyLesson)(lesson)
+    ;(navigateToLesson ?? applyLesson)(lesson, currentStage.value)
   }
 
   function goPrevStage() {
     if (!canGoPrevStage.value) return
+    stopSessionTimer()
     const stage = allStages.value[currentStageIndex.value - 1]
     currentStage.value = stage
-    stopSessionTimer()
-    applyLesson(stage.lessons[0])
+    ;(navigateToLesson ?? applyLesson)(stage.lessons[0], stage)
   }
 
   function goNextStage() {
     if (!canGoNextStage.value) return
+    stopSessionTimer()
     const stage = allStages.value[currentStageIndex.value + 1]
     currentStage.value = stage
-    stopSessionTimer()
-    applyLesson(stage.lessons[0])
+    ;(navigateToLesson ?? applyLesson)(stage.lessons[0], stage)
   }
 
   return {
