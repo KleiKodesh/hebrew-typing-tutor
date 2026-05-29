@@ -4,6 +4,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 import fs from 'fs'
 import path from 'path'
 import { inlineStages } from './plugins/inlineStages'
+import { inlineIntroSlides } from './plugins/inlineIntroSlides'
 
 export default defineConfig(({ command }) => {
   const isBuild = command === 'build'
@@ -16,6 +17,9 @@ export default defineConfig(({ command }) => {
 
       // Provides virtual:stages — inlined JSON at build, fetch() in dev
       inlineStages(isBuild),
+
+      // Provides virtual:intro-slides — inlined JSON at build, fetch() in dev
+      inlineIntroSlides(isBuild),
 
       // Inline all JS/CSS into a single HTML file (build only)
       ...(isBuild ? [viteSingleFile()] : []),

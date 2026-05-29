@@ -8,7 +8,7 @@
         <div v-if="phaseContext" class="stage-intro-context">{{ phaseContext }}</div>
       </div>
       <div class="stage-intro-actions">
-        <button class="stage-intro-btn primary" @click="emitDone">
+        <button class="stage-intro-btn primary" @click="emitDone" @keydown.enter="emitDone">
           התחל
         </button>
       </div>

@@ -30,7 +30,7 @@
         <button @click="showSimulator = true">Debug: Hand Simulator →</button>
       </div>
 
-      <TypingPage v-if="!showSimulator" @show-intro="onShowIntroFromApp" @new-user="onPickNew" />
+      <TypingPage v-if="!showSimulator" @show-intro="onShowIntroFromApp" @new-user="onPickNew" @reset-to-intro="onResetToIntro" />
       <SimulatorPage v-else-if="debugEnabled" />
     </template>
 
@@ -107,6 +107,11 @@ function onShowIntroFromApp() {
     // No users left, go to name entry
     screen.value = 'name'
   }
+}
+
+// Reset button clicked → show intro slides again
+function onResetToIntro() {
+  screen.value = 'intro'
 }
 </script>
 

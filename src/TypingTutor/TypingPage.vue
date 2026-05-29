@@ -187,9 +187,9 @@ import StageIntroOverlay from './StageIntroOverlay.vue'
 import { useTyping, getZoneName } from './UseTyping'
 import { useUserProfile } from '../composables/useUserProfile'
 
-const emit = defineEmits<{ 'show-intro': []; 'new-user': [] }>()
+const emit = defineEmits<{ 'show-intro': []; 'new-user': []; 'reset-to-intro': [] }>()
 
-const { userName, isStageIntroSeen, markStageIntroSeen } = useUserProfile()
+const { userName, isStageIntroSeen, markStageIntroSeen, resetIntro } = useUserProfile()
 
 const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
 const freeInputRef = ref<InstanceType<typeof FreeTypingPanel> | null>(null)
@@ -241,6 +241,8 @@ const handleResetLesson = () => { showResetConfirm.value = true }
 const confirmReset = () => {
   showResetConfirm.value = false
   clearAllProgressAndSession()
+  resetIntro()
+  emit('reset-to-intro')
 }
 
 // ── Auto-focus on lesson/zone change ─────────────────────────────────────────

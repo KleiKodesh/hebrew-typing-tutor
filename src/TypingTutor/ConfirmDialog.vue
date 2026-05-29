@@ -11,7 +11,7 @@
           </div>
           <div class="confirm-actions">
             <button class="confirm-btn cancel" @click="cancel">{{ cancelLabel }}</button>
-            <button class="confirm-btn confirm" @click="confirm">{{ confirmLabel }}</button>
+            <button class="confirm-btn confirm" @click="confirm" @keydown.enter="confirm">{{ confirmLabel }}</button>
           </div>
         </div>
       </div>

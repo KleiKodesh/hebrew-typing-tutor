@@ -5,7 +5,7 @@
       <!-- Progress dots -->
       <div class="intro-dots" aria-hidden="true">
         <button
-          v-for="i in slides.length"
+          v-for="i in slideCount"
           :key="i"
           class="intro-dot"
           :class="{ active: i - 1 === currentIndex }"
@@ -16,10 +16,10 @@
 
       <!-- Slide content -->
       <transition :name="slideDirection" mode="out-in">
-        <div class="intro-slide" :key="currentIndex">
-          <div class="intro-slide-number">{{ currentIndex + 1 }} / {{ slides.length }}</div>
-          <h2 class="intro-slide-title">{{ slides[currentIndex].title }}</h2>
-          <p class="intro-slide-body">{{ slides[currentIndex].body }}</p>
+        <div v-if="slideCount > 0 && currentSlide" class="intro-slide" :key="currentIndex">
+          <div class="intro-slide-number">{{ currentIndex + 1 }} / {{ slideCount }}</div>
+          <h2 class="intro-slide-title">{{ currentSlide.title }}</h2>
+          <p class="intro-slide-body">{{ currentSlide.body }}</p>
         </div>
       </transition>
 
@@ -53,41 +53,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { onMounted, onUnmounted } from 'vue'
+import { introSlides } from 'virtual:intro-slides'
 
 const emit = defineEmits<{
   done: []
   skip: []
 }>()
 
-const slides = [
-  {
-    title: 'מהי הקלדה עיוורת?',
-    body: 'הקלדה עיוורת משמעותה הקלדה ללא הסתכלות על המקלדת, תוך שימוש בכל עשר האצבעות והסתמכות על זיכרון שרירים במקום על רמזים חזותיים. במקום לחפש מקשים, האצבעות שלך יודעות אוטומטית לאן לפנות. זוהי השקעה חד-פעמית עם תשואות לטווח ארוך.',
-  },
-  {
-    title: 'שורת הבסיס: העוגן שלך',
-    body: 'הנח את אצבעות יד שמאל על המקשים כ, ג, ד, ש ואת אצבעות יד ימין על ח, ל, ך, ף. האגודלים נחים על מקש הרווח. שמונת המקשים הללו הם העוגן שלך — כל הקשה מתחילה ומסתיימת כאן. הבליטות המישושיות נמצאות על המקשים כ (יד שמאל) ו-ח (יד ימין) — הן יעזרו לך למצוא את שורת הבסיס ללא הסתכלות.',
-  },
-  {
-    title: 'לכל אצבע העמודה שלה',
-    body: 'המקלדת מחולקת לעמודות אנכיות — כל אצבע אחראית על עמודה קבועה בכל השורות. למשל, אצבע המורה של יד שמאל מכסה את כ, ר, ה, ו-4 בכל השורות מלמעלה למטה. לעולם אל תגיע למקש עם האצבע הלא נכונה. שמירה על הכלל הזה מקצרת את המרחק שהאצבעות עוברות, משפרת מהירות ומפחיתה עומס. לשיפט — השתמש תמיד בזרת של היד הנגדית לאות, כך ששתי הידיים עובדות בו-זמנית.',
-  },
-  {
-    title: 'דיוק לפני מהירות',
-    body: 'הטעות הנפוצה ביותר בקרב מתחילים היא ניסיון להקליד מהר מדי בשלב מוקדם. כלל אצבע טוב: אם הדיוק יורד מתחת ל-90%, האט. המהירות היא תוצר לוואי של הדיוק. עקביות חשובה יותר מאינטנסיביות — תרגול קצר כל יום עדיף על מפגשים ארוכים ולא סדירים.',
-  },
-  {
-    title: 'אל תסתכל והישאר עקבי',
-    body: 'התנגד לכל דחף להסתכל על המקלדת בזמן ההקלדה. תרגל 15–30 דקות ביום בעקביות. בקצב זה, תתחיל להקליד בשיטה עיוורת תוך כחודש, ועם עוד חודש של תרגול תגיע ל-30–40 מילים לדקה.',
-  },
-]
+const slides = ref<Array<{ title: string; body: string }>>([])
+const isLoaded = ref(false)
+
+onMounted(async () => {
+  try {
+    const loaded = await Promise.resolve(introSlides)
+    if (Array.isArray(loaded)) {
+      slides.value = loaded
+    } else {
+      slides.value = []
+    }
+  } catch (error) {
+    console.error('Failed to load intro slides:', error)
+    slides.value = []
+  }
+  isLoaded.value = true
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const currentIndex = ref(0)
 const slideDirection = ref<'slide-next' | 'slide-prev'>('slide-next')
 
-const isLast = computed(() => currentIndex.value === slides.length - 1)
+const slideCount = computed(() => slides.value.length)
+const isLast = computed(() => currentIndex.value === slides.value.length - 1)
+const currentSlide = computed(() => {
+  if (slides.value.length === 0) return null
+  return slides.value[currentIndex.value] || null
+})
 
 function next() {
   if (isLast.value) {
@@ -107,13 +113,6 @@ function prev() {
 function handleBackdropClick() {
   // Don't close on backdrop click
 }
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-})
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') {

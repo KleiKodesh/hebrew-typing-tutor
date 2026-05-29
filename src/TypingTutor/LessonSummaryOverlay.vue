@@ -25,7 +25,7 @@
       </div>
       <div class="summary-actions">
         <button class="summary-btn secondary" @click="$emit('stay')">{{ stayLabel ?? 'חזור על השיעור' }}</button>
-        <button class="summary-btn primary" @click="$emit('advance')">
+        <button class="summary-btn primary" @click="$emit('advance')" @keydown.enter="$emit('advance')">
           {{ advanceLabel }}
         </button>
       </div>

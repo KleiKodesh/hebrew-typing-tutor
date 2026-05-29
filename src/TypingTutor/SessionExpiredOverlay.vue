@@ -9,7 +9,7 @@
       </div>
       <div class="session-overlay-actions">
         <button class="session-overlay-btn secondary" @click="$emit('dismiss')">אישור — אחזור מחר</button>
-        <button class="session-overlay-btn primary" @click="$emit('continue')">המשך בכל זאת</button>
+        <button class="session-overlay-btn primary" @click="$emit('continue')" @keydown.enter="$emit('continue')">המשך בכל זאת</button>
       </div>
     </div>
   </div>
