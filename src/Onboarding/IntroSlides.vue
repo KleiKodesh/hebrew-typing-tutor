@@ -222,6 +222,7 @@ function handleKeydown(e: KeyboardEvent) {
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
+  text-align: justify;
 }
 
 /* Actions */
