@@ -24,7 +24,6 @@
       @blur="onBlur"
       placeholder="הקלד כאן..."
       dir="rtl"
-      autofocus
       spellcheck="false"
       autocomplete="off"
       autocorrect="off"
