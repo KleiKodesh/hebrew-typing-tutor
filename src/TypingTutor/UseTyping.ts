@@ -15,6 +15,21 @@ import { useUserProfile } from '../composables/useUserProfile'
 import { usePersistence } from '../composables/usePersistence'
 
 export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
+  // ── Core state ──────────────────────────────────────────────────────────────
+  const currentLesson = ref<Lesson>(initialLesson)
+  const currentStage = ref<Stage | null>(null)
+  const allStages = ref<Stage[]>([])
+  const typed = ref('')
+  const accuracy = ref(100)
+  const wpm = ref(0)
+  const progress = ref(0)
+  const start = ref<number | null>(null)
+  const lastKey = ref('')
+  const heldKey = ref('')
+  const mistakeKey = ref('')
+  const weak = ref<Record<string, number>>({})
+  const exerciseMode = ref<ExerciseMode>('copy')
+
   // ── Per-user key helpers ────────────────────────────────────────────────────
   function userPrefix(): string {
     const name = userName?.value?.trim()
