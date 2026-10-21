@@ -1,11 +1,11 @@
 <template>
   <div class="name-backdrop">
-    <div class="name-card" role="dialog" aria-modal="true" aria-label="הזן את שמך">
+    <div class="name-card" role="dialog" aria-modal="true" :aria-label="t('הזן את שמך')">
 
       <div class="name-header">
         <span class="name-logo" aria-hidden="true">⌨️</span>
-        <h1 class="name-title">הקלדה עברית</h1>
-        <p class="name-subtitle">חויית למידה בוגרת ומהנה</p>
+        <h1 class="name-title">{{ t('הקלדה עברית') }}</h1>
+        <p class="name-subtitle">{{ t('חויית למידה בוגרת ומהנה') }}</p>
       </div>
 
       <div class="name-divider" />
@@ -16,18 +16,18 @@
           v-model="nameInput"
           class="name-input"
           type="text"
-          placeholder="שמך..."
+          :placeholder="t('שמך...')"
           maxlength="40"
           autocomplete="given-name"
           dir="rtl"
-          aria-label="שם"
+          :aria-label="t('שם')"
         />
         <button
           type="submit"
           class="name-btn"
           :disabled="!nameInput.trim()"
         >
-          התחל
+          {{ t('התחל') }}
         </button>
       </form>
 
@@ -37,6 +37,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
 
 const emit = defineEmits<{
   done: [name: string]
@@ -199,4 +202,6 @@ function submit() {
 .name-btn:hover:not(:disabled) { background: #106ebe; }
 .name-btn:active:not(:disabled) { background: #005a9e; }
 .name-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+:global([dir='ltr']) .name-input { direction: ltr; }
 </style>

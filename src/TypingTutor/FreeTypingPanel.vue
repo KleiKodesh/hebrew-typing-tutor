@@ -7,7 +7,7 @@
       @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value); $emit('input', $event)"
       @keydown="$emit('keydown', $event)"
       @keyup="$emit('keyup', $event)"
-      placeholder="הקלד חופשי..."
+      :placeholder="t('הקלד חופשי...')"
       dir="rtl"
     ></textarea>
   </div>
@@ -15,6 +15,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
 
 defineProps<{ modelValue: string }>()
 defineEmits<{

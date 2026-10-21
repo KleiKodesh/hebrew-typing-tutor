@@ -1,10 +1,10 @@
 <template>
   <div class="picker-backdrop">
-    <div class="picker-card" role="dialog" aria-modal="true" aria-label="בחר משתמש">
+    <div class="picker-card" role="dialog" aria-modal="true" :aria-label="t('בחר משתמש')">
 
       <div class="picker-header">
-        <h1 class="picker-title">בחר משתמש</h1>
-        <p class="picker-subtitle">או צור חדש</p>
+        <h1 class="picker-title">{{ t('בחר משתמש') }}</h1>
+        <p class="picker-subtitle">{{ t('או צור חדש') }}</p>
       </div>
 
       <div class="picker-divider" />
@@ -25,8 +25,8 @@
           <button
             class="user-delete"
             @click="openDeleteConfirm(user)"
-            title="מחק משתמש"
-            aria-label="מחק משתמש"
+            :title="t('מחק משתמש')"
+            :aria-label="t('מחק משתמש')"
           >
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
               <path d="M19 6L5 20M5 6L19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -40,7 +40,7 @@
       <!-- New user -->
       <button class="new-user-btn" @click="$emit('new')">
         <span class="new-user-avatar">+</span>
-        <span>משתמש חדש</span>
+        <span>{{ t('משתמש חדש') }}</span>
       </button>
 
     </div>
@@ -48,17 +48,17 @@
     <!-- Delete confirmation dialog -->
     <ConfirmDialog
       :is-open="!!deleteConfirmUser"
-      cancel-label="ביטול"
-      confirm-label="מחק"
+      :cancel-label="t('ביטול')"
+      :confirm-label="t('מחק')"
       @confirm="confirmDelete"
       @cancel="deleteConfirmUser = null"
     >
       <template #message>
-        <span>האם אתה בטוח שברצונך למחוק את </span>
+        <span>{{ t('האם אתה בטוח שברצונך למחוק את ') }}</span>
         <span class="delete-name">{{ deleteConfirmUser }}</span>
         <span>?</span>
       </template>
-      <template #warning>כל הנתונים שלו יימחקו.</template>
+      <template #warning>{{ t('כל הנתונים שלו יימחקו.') }}</template>
     </ConfirmDialog>
   </div>
 </template>
@@ -67,6 +67,9 @@
 import { ref } from 'vue'
 import { useUserProfile } from '../composables/useUserProfile'
 import ConfirmDialog from '../TypingTutor/ConfirmDialog.vue'
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
 
 const emit = defineEmits<{
   select: [name: string]
@@ -288,5 +291,10 @@ function confirmDelete() {
 .delete-name {
   font-weight: 700;
   color: var(--text-primary);
+}
+
+:global([dir='ltr']) .user-item,
+:global([dir='ltr']) .new-user-btn {
+  text-align: left;
 }
 </style>

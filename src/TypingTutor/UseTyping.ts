@@ -13,8 +13,10 @@ import { useLessonNavigation } from './useLessonNavigation'
 import { useTypingInput } from './useTypingInput'
 import { useUserProfile } from '../composables/useUserProfile'
 import { usePersistence } from '../composables/usePersistence'
+import { useUiLanguage } from '../composables/useUiLanguage'
 
 export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
+  const { language } = useUiLanguage()
   // ── Core state ──────────────────────────────────────────────────────────────
   const currentLesson = ref<Lesson>(initialLesson)
   const currentStage = ref<Stage | null>(null)
@@ -417,10 +419,16 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
   })
 
   watch(
-    () => ({ stage: nav.currentStageIndex.value, lesson: nav.currentLessonIndex.value }),
+    () => ({
+      stage: nav.currentStageIndex.value,
+      lesson: nav.currentLessonIndex.value,
+      language: language.value,
+    }),
     () => {
-      if (nav.stageProgression.value && nav.lessonProgression.value)
-        document.title = `הקלדה עברית — ${nav.lessonStageLabel.value}`
+      if (nav.stageProgression.value && nav.lessonProgression.value) {
+        const title = language.value === 'he' ? 'הקלדה עברית' : 'Hebrew Typing Tutor'
+        document.title = `${title} — ${nav.lessonStageLabel.value}`
+      }
     },
     { immediate: true }
   )

@@ -86,6 +86,11 @@ function cancel() {
   text-align: right;
 }
 
+:global([dir='ltr']) .confirm-message,
+:global([dir='ltr']) .confirm-warning {
+  text-align: left;
+}
+
 .confirm-actions {
   display: flex;
   gap: 8px;

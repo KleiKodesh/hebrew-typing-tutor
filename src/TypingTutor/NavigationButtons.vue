@@ -1,5 +1,5 @@
 <template>
-  <div class="button-row">
+  <div class="button-row" dir="ltr">
     <div class="meta-group">
       <div
         v-if="sessionSecondsDisplay"
@@ -14,7 +14,7 @@
         class="nav-button stage-button"
         :disabled="!canGoPrevStage"
         @click="$emit('prev-stage')"
-        title="שלב קודם"
+        :title="t('שלב קודם')"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M6 6L13 12L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -25,7 +25,7 @@
         class="nav-button prev-button"
         :disabled="!canGoPrev"
         @click="$emit('prev-lesson')"
-        title="שיעור קודם"
+        :title="t('שיעור קודם')"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -34,7 +34,7 @@
       <button
         class="reset-button"
         @click="handleReset"
-        title="אפס הכל"
+        :title="t('אפס הכל')"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M21 12a9 9 0 11-2.83-6.36" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -45,7 +45,7 @@
         class="nav-button next-button"
         :disabled="!canGoNext"
         @click="$emit('next-lesson')"
-        title="שיעור הבא"
+        :title="t('שיעור הבא')"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -55,7 +55,7 @@
         :class="['nav-button','stage-button',{highlightNextStage: highlightNextStage}]"
         :disabled="!canGoNextStage"
         @click="$emit('next-stage')"
-        title="שלב הבא"
+        :title="t('שלב הבא')"
       >
         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M11 6L4 12L11 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -65,7 +65,7 @@
       <button
         class="nav-button dark-toggle"
         @click="toggleDarkMode()"
-        :title="isDarkMode ? 'מצב בהיר' : 'מצב אפל'"
+        :title="isDarkMode ? t('מצב בהיר') : t('מצב אפל')"
       >
         <svg v-if="isDarkMode" class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -75,6 +75,13 @@
           <path d="M12 2V4M12 20V22M2 12H4M20 12H22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+      <button
+        class="nav-button language-toggle"
+        type="button"
+        :aria-label="language === 'he' ? t('החלף לאנגלית') : t('החלף לעברית')"
+        :title="language === 'he' ? t('החלף לאנגלית') : t('החלף לעברית')"
+        @click="setLanguage(language === 'he' ? 'en' : 'he')"
+      >{{ language === 'he' ? 'EN' : 'עב' }}</button>
       <!-- User dropdown -->
       <UserDropdown @show-intro="$emit('show-intro')" @new-user="$emit('new-user')" @user-deleted="$emit('show-intro')" />
     </div>
@@ -83,9 +90,11 @@
 
 <script setup lang="ts">
 import { useDarkMode } from '../composables/useDarkMode'
+import { useUiLanguage } from '../composables/useUiLanguage'
 import UserDropdown from './UserDropdown.vue'
 
 const { isDarkMode, toggleDarkMode } = useDarkMode()
+const { language, setLanguage, t } = useUiLanguage()
 
 defineProps<{
   canGoPrev?: boolean
@@ -214,6 +223,10 @@ function handleReset() {
   flex-shrink: 0;
 }
 
+.language-toggle {
+  font-size: 11px;
+}
+
 @media (max-width: 480px) {
   .button-group { 
     gap: 3px;
@@ -252,6 +265,10 @@ function handleReset() {
   vertical-align: middle;
   position: relative;
   z-index: 1;
+}
+
+:global(html[dir='ltr'] .nav-button .icon) {
+  transform: scaleX(-1);
 }
 
 @media (max-width: 480px) {
@@ -304,13 +321,18 @@ function handleReset() {
 
 .dark-toggle {
   color: var(--text-secondary);
-  background: var(--bg-tertiary);
+}
+
+.dark-toggle,
+.language-toggle,
+:deep(.user-trigger) {
+  width: clamp(28px, 4.5vw, 36px);
+  height: clamp(28px, 4.5vw, 36px);
+  box-sizing: border-box;
+  border-radius: 8px;
 }
 
 .dark-toggle:hover { 
   color: var(--accent-primary);
-  background: var(--bg-tertiary);
-  box-shadow: var(--shadow-md);
-  border-color: var(--accent-primary);
 }
 </style>

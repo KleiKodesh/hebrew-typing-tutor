@@ -1,11 +1,15 @@
 <template>
   <div class="recall-panel">
     <div class="recall-text" dir="rtl">{{ text }}</div>
-    <button class="recall-btn" @click="$emit('start')">קראתי — הסתר והתחל</button>
+    <button class="recall-btn" @click="$emit('start')">{{ t('קראתי — הסתר והתחל') }}</button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
+
 defineProps<{ text: string }>()
 defineEmits<{ start: [] }>()
 </script>

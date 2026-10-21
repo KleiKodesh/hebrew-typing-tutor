@@ -5,7 +5,7 @@
       class="user-trigger"
       :class="{ open: isOpen }"
       @click="toggle"
-      :title="userName || 'משתמש'"
+      :title="userName || t('משתמש')"
       aria-haspopup="listbox"
       :aria-expanded="isOpen"
     >
@@ -19,11 +19,11 @@
     <!-- Dropdown panel -->
     <Teleport to="body">
       <transition name="dropdown">
-        <div v-if="isOpen" ref="panelEl" class="dropdown-panel" role="listbox" :aria-label="'בחר משתמש'" :style="dropdownStyle">
+        <div v-if="isOpen" ref="panelEl" class="dropdown-panel" role="listbox" :aria-label="t('בחר משתמש')" :style="dropdownStyle">
 
           <!-- Existing users -->
           <div v-if="allUsers.length" class="dropdown-section">
-            <div class="dropdown-section-label">משתמשים</div>
+            <div class="dropdown-section-label">{{ t('משתמשים') }}</div>
             <button
               v-for="user in allUsers"
               :key="user"
@@ -41,8 +41,8 @@
               <button
                 class="item-delete"
                 @click="handleDeleteUser($event, user)"
-                title="מחק משתמש"
-                aria-label="מחק משתמש"
+                :title="t('מחק משתמש')"
+                :aria-label="t('מחק משתמש')"
               >
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                   <path d="M19 6L5 20M5 6L19 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -64,7 +64,7 @@
                 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M19 8v6M16 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
-              <span>משתמש חדש</span>
+              <span>{{ t('משתמש חדש') }}</span>
             </button>
           </div>
 
@@ -75,18 +75,18 @@
     <!-- Delete confirmation dialog -->
     <ConfirmDialog
       :is-open="!!deleteConfirmUser"
-      cancel-label="ביטול"
-      confirm-label="מחק"
+      :cancel-label="t('ביטול')"
+      :confirm-label="t('מחק')"
       @confirm="confirmDelete"
       @cancel="deleteConfirmUser = null"
     >
       <template #message>
-        <span>האם אתה בטוח שברצונך למחוק את </span>
+        <span>{{ t('האם אתה בטוח שברצונך למחוק את ') }}</span>
         <span class="delete-name">{{ deleteConfirmUser }}</span>
         <span>?</span>
       </template>
       <template #warning>
-        כל הנתונים שלו יימחקו.
+        {{ t('כל הנתונים שלו יימחקו.') }}
       </template>
     </ConfirmDialog>
   </div>
@@ -96,6 +96,7 @@
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useUserProfile } from '../composables/useUserProfile'
 import ConfirmDialog from './ConfirmDialog.vue'
+import { useUiLanguage } from '../composables/useUiLanguage'
 
 const emit = defineEmits<{
   'new-user': []
@@ -103,6 +104,7 @@ const emit = defineEmits<{
 }>()
 
 const { userName, allUsers, switchUser, deleteUser } = useUserProfile()
+const { t } = useUiLanguage()
 
 const isOpen = ref(false)
 const wrapEl = ref<HTMLElement | null>(null)
@@ -111,11 +113,30 @@ const deleteConfirmUser = ref<string | null>(null)
 const dropdownStyle = ref<{ top: string; left: string }>({ top: '0', left: '0' })
 
 function updateDropdownPosition() {
-  if (!wrapEl.value) return
+  if (!wrapEl.value || !panelEl.value) return
+
   const rect = wrapEl.value.getBoundingClientRect()
+  const panel = panelEl.value
+  const margin = 8
+  const gap = 6
+  const viewportWidth = document.documentElement.clientWidth
+  const viewportHeight = document.documentElement.clientHeight
+  const panelWidth = panel.offsetWidth
+  const panelHeight = panel.offsetHeight
+  const left = Math.min(
+    Math.max(rect.right - panelWidth, margin),
+    viewportWidth - panelWidth - margin,
+  )
+  const spaceBelow = viewportHeight - rect.bottom - gap - margin
+  const spaceAbove = rect.top - gap - margin
+  const openBelow = panelHeight <= spaceBelow || spaceBelow >= spaceAbove
+  const top = openBelow
+    ? Math.min(rect.bottom + gap, viewportHeight - panelHeight - margin)
+    : Math.max(margin, rect.top - panelHeight - gap)
+
   dropdownStyle.value = {
-    top: `${rect.bottom + 6}px`,
-    left: `${rect.left}px`,
+    top: `${top}px`,
+    left: `${left}px`,
   }
 }
 
@@ -173,7 +194,15 @@ function onDocClick(e: MouseEvent) {
 }
 
 onMounted(() => document.addEventListener('mousedown', onDocClick))
-onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
+onMounted(() => {
+  window.addEventListener('resize', updateDropdownPosition)
+  window.addEventListener('scroll', updateDropdownPosition, true)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocClick)
+  window.removeEventListener('resize', updateDropdownPosition)
+  window.removeEventListener('scroll', updateDropdownPosition, true)
+})
 </script>
 
 <style scoped>
@@ -189,21 +218,22 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   padding: 0;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--bg-tertiary);
+  background: var(--bg-primary);
   color: var(--text-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
   flex-shrink: 0;
 }
 
 .user-trigger:hover,
 .user-trigger.open {
   color: var(--accent-primary);
+  background: var(--bg-tertiary);
   box-shadow: 0 18px 36px rgba(16, 20, 40, 0.08);
-  border-color: rgba(0, 120, 212, 0.35);
+  border-color: rgba(0, 120, 212, 0.18);
   transform: translateY(-1px);
 }
 
@@ -230,8 +260,10 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
   box-shadow: var(--shadow-lg);
   z-index: 400;
   overflow: hidden;
-  min-width: 200px;
-  max-width: 300px;
+  min-width: min(200px, calc(100vw - 16px));
+  max-width: min(300px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
 }
 
 .dropdown-section {
@@ -297,6 +329,10 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
 
 .item-name {
   flex: 1;
+}
+
+:global([dir='ltr']) .dropdown-item {
+  text-align: left;
 }
 
 .item-check {

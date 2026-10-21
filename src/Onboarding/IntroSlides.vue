@@ -1,6 +1,6 @@
 <template>
   <div class="intro-backdrop" @click.self="handleBackdropClick">
-    <div class="intro-card" role="dialog" aria-modal="true" aria-label="מבוא להקלדה עיוורת">
+    <div class="intro-card" role="dialog" aria-modal="true" :aria-label="t('מבוא להקלדה עיוורת')">
 
       <!-- Progress dots -->
       <div class="intro-dots" aria-hidden="true">
@@ -10,7 +10,7 @@
           class="intro-dot"
           :class="{ active: i - 1 === currentIndex }"
           @click="currentIndex = i - 1"
-          :aria-label="`עבור לשקופית ${i}`"
+          :aria-label="`${t('עבור לשקופית')} ${i}`"
         />
       </div>
 
@@ -30,21 +30,21 @@
           class="intro-btn secondary"
           @click="prev"
         >
-          הקודם
+          {{ t('הקודם') }}
         </button>
         <button
           v-else
           class="intro-btn ghost"
           @click="$emit('skip')"
         >
-          דלג
+          {{ t('דלג') }}
         </button>
 
         <button
           class="intro-btn primary"
           @click="next"
         >
-          {{ isLast ? 'בואו נתחיל' : 'הבא' }}
+          {{ isLast ? t('בואו נתחיל') : t('הבא') }}
         </button>
       </div>
 
@@ -56,6 +56,9 @@
 import { ref, computed, watch } from 'vue'
 import { onMounted, onUnmounted } from 'vue'
 import { introSlides } from 'virtual:intro-slides'
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { language, t } = useUiLanguage()
 
 const emit = defineEmits<{
   done: []
@@ -64,6 +67,34 @@ const emit = defineEmits<{
 
 const slides = ref<Array<{ title: string; body: string }>>([])
 const isLoaded = ref(false)
+const englishSlides = [
+  {
+    title: 'The first step happens in your brain, not your fingers',
+    body: 'Early progress is mostly cognitive: your brain learns patterns and builds a mental map of the keyboard. Read and recognize each word before typing it. This builds a stronger connection between each letter, its keyboard position, and the movement needed to type it.',
+  },
+  {
+    title: 'Accuracy before speed',
+    body: 'A common beginner mistake is trying to type too fast too soon. If your accuracy drops below 90%, slow down. Speed follows accuracy. Consistency matters more than intensity: a short daily practice is better than occasional long sessions.',
+  },
+  {
+    title: 'Don’t look, and stay consistent',
+    body: 'Resist the urge to look at the keyboard while typing. Practice consistently for 15–30 minutes a day. With this pace, you can begin touch typing in about a month, and reach 30–40 words per minute after another month of practice.',
+  },
+  {
+    title: 'The home row: your anchor',
+    body: 'Rest your left hand on ש, ד, ג, כ and your right hand on ח, ל, ך, ף. Rest your thumbs on the space bar. These home keys are your anchor—every keystroke starts and ends here. The tactile bumps on כ (left hand) and ח (right hand) help you find the home row without looking.',
+  },
+  {
+    title: 'Each finger has its own column',
+    body: 'The keyboard is divided into vertical columns, with each finger responsible for a column across all rows. Always use the correct finger for each key. This reduces finger travel, improves speed, and lowers strain. For Shift, use the pinky on the opposite hand.',
+  },
+  {
+    title: 'What is touch typing?',
+    body: 'Touch typing means typing without looking at the keyboard, using all ten fingers and relying on muscle memory instead of visual cues. Rather than searching for keys, your fingers learn where to go automatically. It is a one-time investment with long-term benefits.',
+  },
+]
+
+const visibleSlides = computed(() => language.value === 'en' ? englishSlides : slides.value)
 
 onMounted(async () => {
   try {
@@ -88,12 +119,14 @@ onUnmounted(() => {
 const currentIndex = ref(0)
 const slideDirection = ref<'slide-next' | 'slide-prev'>('slide-next')
 
-const slideCount = computed(() => slides.value.length)
-const isLast = computed(() => currentIndex.value === slides.value.length - 1)
+const slideCount = computed(() => visibleSlides.value.length)
+const isLast = computed(() => currentIndex.value === visibleSlides.value.length - 1)
 const currentSlide = computed(() => {
-  if (slides.value.length === 0) return null
-  return slides.value[currentIndex.value] || null
+  if (visibleSlides.value.length === 0) return null
+  return visibleSlides.value[currentIndex.value] || null
 })
+
+watch(language, () => { currentIndex.value = 0 })
 
 function next() {
   if (isLast.value) {

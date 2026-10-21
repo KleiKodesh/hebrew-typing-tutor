@@ -2,20 +2,24 @@
   <div class="session-overlay">
     <div class="session-overlay-box">
       <div class="session-overlay-icon">⏱</div>
-      <div class="session-overlay-title">20 דקות הסתיימו</div>
+      <div class="session-overlay-title">{{ t('20 דקות הסתיימו') }}</div>
       <div class="session-overlay-body">
-        לפי מחקר Baddeley &amp; Longman (1978), שיעור אחד ביום של עד 20 דקות הוא האפקטיבי ביותר.
-        עצור כאן. חזור מחר.
+        {{ t('לפי מחקר Baddeley & Longman (1978), שיעור אחד ביום של עד 20 דקות הוא האפקטיבי ביותר.') }}
+        {{ t('עצור כאן. חזור מחר.') }}
       </div>
       <div class="session-overlay-actions">
-        <button class="session-overlay-btn secondary" @click="$emit('dismiss')">אישור — אחזור מחר</button>
-        <button class="session-overlay-btn primary" @click="$emit('continue')" @keydown.enter="$emit('continue')">המשך בכל זאת</button>
+        <button class="session-overlay-btn secondary" @click="$emit('dismiss')">{{ t('אישור — אחזור מחר') }}</button>
+        <button class="session-overlay-btn primary" @click="$emit('continue')" @keydown.enter="$emit('continue')">{{ t('המשך בכל זאת') }}</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
+
 defineEmits<{ dismiss: []; continue: [] }>()
 </script>
 

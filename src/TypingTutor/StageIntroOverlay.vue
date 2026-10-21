@@ -1,6 +1,6 @@
 <template>
   <div class="stage-intro-overlay" @click.self="handleBackdropClick">
-    <div class="stage-intro-box" role="dialog" aria-modal="true" aria-label="מבוא לשלב">
+    <div class="stage-intro-box" role="dialog" aria-modal="true" :aria-label="t('מבוא לשלב')">
       <div class="stage-intro-phase" v-if="phaseLabel">{{ phaseLabel }}</div>
       <div class="stage-intro-title">{{ stageTitle }}</div>
       <div v-if="stageSubtitle" class="stage-intro-subtitle">{{ stageSubtitle }}</div>
@@ -9,7 +9,7 @@
       </div>
       <div class="stage-intro-actions">
         <button class="stage-intro-btn primary" @click="emitDone" @keydown.enter="emitDone">
-          התחל
+          {{ t('התחל') }}
         </button>
       </div>
     </div>
@@ -17,6 +17,10 @@
 </template>
 
 <script setup lang="ts">
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
+
 const props = defineProps<{
   stageTitle: string
   stageSubtitle?: string

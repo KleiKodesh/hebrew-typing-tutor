@@ -9,8 +9,8 @@
         v-html="displayText"
       ></div>
       <div v-else class="sample-hidden">
-        <span class="hidden-msg">הטקסט מוסתר — הקלד מהזיכרון</span>
-        <a href="#" class="show-text-link" @click.prevent="$emit('reveal')">הצג שוב</a>
+        <span class="hidden-msg">{{ t('הטקסט מוסתר — הקלד מהזיכרון') }}</span>
+        <a href="#" class="show-text-link" @click.prevent="$emit('reveal')">{{ t('הצג שוב') }}</a>
       </div>
     </div>
     <textarea
@@ -22,7 +22,7 @@
       @keydown="onKeyDown"
       @keyup="onKeyUp"
       @blur="onBlur"
-      placeholder="הקלד כאן..."
+      :placeholder="t('הקלד כאן...')"
       dir="rtl"
       spellcheck="false"
       autocomplete="off"
@@ -34,6 +34,9 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
 
 const props = defineProps<{
   modelValue?: string

@@ -2,11 +2,11 @@
   <div class="stats-bar">
     <div class="stat">
       <span class="stat-value" :class="accuracyClass">{{ accuracy }}%</span>
-      <span class="stat-label">דיוק</span>
+      <span class="stat-label">{{ t('דיוק') }}</span>
     </div>
     <div class="stat">
       <span class="stat-value">{{ wpm }}</span>
-      <span class="stat-label">ת/ד</span>
+      <span class="stat-label">{{ t('ת/ד') }}</span>
     </div>
     <div class="stat progress-stat">
       <div class="progress-track">
@@ -23,6 +23,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
 
 const props = defineProps<{
   accuracy: number
@@ -48,7 +51,6 @@ const accuracyClass = computed(() => {
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   flex-shrink: 0;
-  direction: rtl;
 }
 
 .stat {

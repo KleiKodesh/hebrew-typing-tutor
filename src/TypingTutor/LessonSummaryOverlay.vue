@@ -5,11 +5,11 @@
       <div v-if="data.wpm > 0 || data.accuracy < 100" class="summary-stats">
         <div class="summary-stat">
           <span class="summary-stat-value">{{ data.accuracy }}%</span>
-          <span class="summary-stat-label">דיוק</span>
+          <span class="summary-stat-label">{{ t('דיוק') }}</span>
         </div>
         <div class="summary-stat">
           <span class="summary-stat-value">{{ data.wpm }}</span>
-          <span class="summary-stat-label">תווים/דקה</span>
+          <span class="summary-stat-label">{{ t('תווים/דקה') }}</span>
         </div>
         <div
           v-if="data.hasAyinCheck && data.ayinAccuracy !== null"
@@ -17,14 +17,14 @@
           :class="{ 'ayin-warn': (data.ayinAccuracy ?? 100) < 80 }"
         >
           <span class="summary-stat-value">{{ data.ayinAccuracy }}%</span>
-          <span class="summary-stat-label">דיוק ע</span>
+          <span class="summary-stat-label">{{ t('דיוק ע') }}</span>
         </div>
       </div>
       <div v-if="data.hasAyinCheck && (data.ayinAccuracy ?? 100) < 80" class="ayin-feedback">
-        הזרת הימנית (ע) מתחת ל-80% — שקול לחזור על שיעור ע לפני שממשיך.
+        {{ t('הזרת הימנית (ע) מתחת ל-80% — שקול לחזור על שיעור ע לפני שממשיך.') }}
       </div>
       <div class="summary-actions">
-        <button class="summary-btn secondary" @click="$emit('stay')">{{ stayLabel ?? 'חזור על השיעור' }}</button>
+        <button class="summary-btn secondary" @click="$emit('stay')">{{ stayLabel ?? t('חזור על השיעור') }}</button>
         <button class="summary-btn primary" @click="$emit('advance')" @keydown.enter="$emit('advance')">
           {{ advanceLabel }}
         </button>
@@ -34,6 +34,10 @@
 </template>
 
 <script setup lang="ts">
+import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { t } = useUiLanguage()
+
 defineProps<{
   title: string
   advanceLabel: string

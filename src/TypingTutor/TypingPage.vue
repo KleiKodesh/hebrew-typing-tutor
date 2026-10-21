@@ -3,16 +3,16 @@
 
     <!-- ── English keyboard warning ── -->
     <div v-if="englishWarning" class="warning-popup">
-      ⚠️ הקלדה באנגלית — עבור לעברית
+      ⚠️ {{ t('הקלדה באנגלית — עבור לעברית') }}
     </div>
 
     <!-- ── Stage intro overlay ── -->
     <StageIntroOverlay
       v-if="showStageIntro && stageIntroData"
-      :stage-title="stageIntroData.title"
+      :stage-title="curriculumText(`curriculum.${stageIntroData.stageId}.title`, stageIntroData.title)"
       :stage-subtitle="stageIntroData.subtitle"
       :description="stageIntroData.description"
-      :phase-context="stageIntroData.context"
+      :phase-context="curriculumText(`curriculum.${stageIntroData.stageId}.context`, stageIntroData.context ?? '')"
       @done="dismissStageIntro"
     />
 
@@ -27,7 +27,7 @@
     <LessonSummaryOverlay
       v-if="showSummary && summaryData"
       :title="summaryTitle"
-      :advance-label="canGoNext ? 'שיעור הבא' : canGoNextStage ? 'שלב הבא' : 'סיום'"
+      :advance-label="canGoNext ? t('שיעור הבא') : canGoNextStage ? t('שלב הבא') : t('סיום')"
       :data="summaryData"
       @stay="dismissSummaryAndStay"
       @advance="dismissSummaryAndAdvance"
@@ -36,9 +36,9 @@
     <!-- ── Redo lesson prompt (reuses summary overlay, no confetti) ── -->
     <LessonSummaryOverlay
       v-if="showRedoConfirm && redoSummaryData"
-      title="כבר השלמת את השיעור הזה"
-      advance-label="המשך"
-      stay-label="עשה שוב"
+      :title="t('כבר השלמת את השיעור הזה')"
+      :advance-label="t('המשך')"
+      :stay-label="t('עשה שוב')"
       :data="redoSummaryData"
       @stay="confirmRedo"
       @advance="cancelRedo"
@@ -51,7 +51,7 @@
       :can-go-prev-stage="canGoPrevStage"
       :can-go-next-stage="canGoNextStage"
       :highlight-next-stage="highlightNextStage"
-      :phase-label="currentLesson?.phase_label"
+      :phase-label="currentLesson?.phase_label ? t(currentLesson.phase_label) : undefined"
       :session-seconds-display="sessionSecondsDisplay"
       :session-warning="sessionWarning"
       :lesson-stage-label="lessonStageLabel"
@@ -72,9 +72,9 @@
       <LessonInfoCard
         v-if="currentLesson?.text"
         :lesson-id="currentLesson.lesson_id"
-        :title="currentLesson.title"
-        :text="currentLesson.text"
-        :guidance="currentLesson.session_guidance"
+        :title="lessonText('title', currentLesson.title)"
+        :text="lessonText('text', currentLesson.text)"
+        :guidance="currentLesson.session_guidance ? lessonText('guidance', currentLesson.session_guidance) : undefined"
       />
 
       <!-- Zone progress indicator (only when multiple zones exist) -->
@@ -88,16 +88,16 @@
             'zone-pip--active': i === currentZoneIndex,
           }"
           @click="jumpToZone(i)"
-          :aria-label="getZoneName(zone)"
+          :aria-label="t(getZoneName(zone))"
           :aria-pressed="i === currentZoneIndex"
         >
-          <span class="zone-pip-label">{{ getZoneName(zone) }}</span>
+          <span class="zone-pip-label">{{ t(getZoneName(zone)) }}</span>
         </button>
       </div>
 
       <!-- Zone text for free mode -->
       <div v-if="exerciseMode === 'free' && zoneText" class="zone-text">
-        <div v-if="currentZone !== 'zone_c'" class="zone-text-title">{{ getZoneName(currentZone) }}</div>
+        <div v-if="currentZone !== 'zone_c'" class="zone-text-title">{{ t(getZoneName(currentZone)) }}</div>
         <div class="zone-text-body" dir="rtl">{{ zoneText }}</div>
       </div>
 
@@ -159,13 +159,13 @@
     <!-- ── Reset confirmation dialog ── -->
     <ConfirmDialog
       :is-open="showResetConfirm"
-      cancel-label="ביטול"
-      confirm-label="מחק הכל"
+      :cancel-label="t('ביטול')"
+      :confirm-label="t('מחק הכל')"
       @confirm="confirmReset"
       @cancel="showResetConfirm = false"
     >
-      <template #message>האם אתה בטוח שברצונך למחוק את כל הנתונים?</template>
-      <template #warning>לא ניתן לבטל פעולה זו.</template>
+      <template #message>{{ t('האם אתה בטוח שברצונך למחוק את כל הנתונים?') }}</template>
+      <template #warning>{{ t('לא ניתן לבטל פעולה זו.') }}</template>
     </ConfirmDialog>
 
   </div>
@@ -186,16 +186,31 @@ import LessonInfoCard from './LessonInfoCard.vue'
 import StageIntroOverlay from './StageIntroOverlay.vue'
 import { useTyping, getZoneName } from './UseTyping'
 import { useUserProfile } from '../composables/useUserProfile'
+import { useUiLanguage } from '../composables/useUiLanguage'
 
 const emit = defineEmits<{ 'show-intro': []; 'new-user': []; 'reset-to-intro': [] }>()
 
 const { userName, isStageIntroSeen, markStageIntroSeen, resetIntro } = useUserProfile()
+const { language, t } = useUiLanguage()
+
+function curriculumText(key: string, source: string): string {
+  if (language.value !== 'en') return source
+  const translated = t(key)
+  return translated === key ? source : translated
+}
+
+function lessonText(field: 'title' | 'text' | 'guidance', source: string): string {
+  const lessonId = currentLesson.value.lesson_id
+  return lessonId
+    ? curriculumText(`curriculum.${lessonId}.${field}`, source)
+    : source
+}
 
 const inputAreaRef = ref<InstanceType<typeof InputArea> | null>(null)
 const freeInputRef = ref<InstanceType<typeof FreeTypingPanel> | null>(null)
 
 const showStageIntro = ref(false)
-const stageIntroData = ref<{ title: string; subtitle?: string; description: string; context?: string } | null>(null)
+const stageIntroData = ref<{ stageId: string; title: string; subtitle?: string; description: string; context?: string } | null>(null)
 
 const {
   typed, accuracy, wpm, progress, lastKey, heldKey, nextKey, mistakeKey,
@@ -258,7 +273,10 @@ watch(() => currentZoneIndex.value, () => focusInput())
 watch(() => currentStage.value, (stage) => {
   if (stage && !isStageIntroSeen(stage.stage_id)) {
     stageIntroData.value = {
-      title: stage.stage_title,      subtitle: stage.stage_subtitle,      description: stage.description,
+      stageId: stage.stage_id,
+      title: stage.stage_title,
+      subtitle: stage.stage_subtitle,
+      description: stage.description ?? '',
       context: stage.phase_context,
     }
     showStageIntro.value = true
@@ -274,12 +292,16 @@ function dismissStageIntro() {
 
 // ── Personalised compliments ──────────────────────────────────────────────────
 const compliments = ['כל הכבוד', 'עבודה מצוינת', 'מדהים', 'ממשיכים קדימה', 'מושלם']
-const summaryTitle = ref('✓ שיעור הושלם')
+const chosenCompliment = ref(compliments[0])
+const summaryTitle = computed(() =>
+  userName.value
+    ? `${t(chosenCompliment.value)}, ${userName.value}! ✓`
+    : t('✓ שיעור הושלם')
+)
 
 watch(showSummary, (visible) => {
   if (!visible) return
-  const base = compliments[Math.floor(Math.random() * compliments.length)]
-  summaryTitle.value = userName.value ? `${base}, ${userName.value}! ✓` : '✓ שיעור הושלם'
+  chosenCompliment.value = compliments[Math.floor(Math.random() * compliments.length)]
 })
 </script>
 
@@ -318,7 +340,6 @@ watch(showSummary, (visible) => {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
-  direction: rtl;
 }
 
 .zone-pip {
