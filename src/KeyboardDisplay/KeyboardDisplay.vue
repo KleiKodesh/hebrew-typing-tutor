@@ -54,6 +54,7 @@ const props = defineProps<{
   mistakeKey:     string
   prevKey?:       string
   unconstrained?: boolean
+  forceHebrewLayout?: boolean
 }>()
 
 // ── Language detection ────────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ const latinRe  = /^[a-zA-Z]$/
 const lang = ref<'en' | 'he'>('he')
 
 function onKeyDown(e: KeyboardEvent) {
+  if (props.forceHebrewLayout) return
   if (e.key.length !== 1) return
   if (hebrewRe.test(e.key))     lang.value = 'he'
   else if (latinRe.test(e.key)) lang.value = 'en'

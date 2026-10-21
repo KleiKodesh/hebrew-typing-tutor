@@ -31,6 +31,7 @@ const englishByHebrew: Record<string, string> = {
   'בואו נתחיל': 'Let’s begin',
   'הבא': 'Next',
   'הקלדה באנגלית — עבור לעברית': 'English keyboard detected — switch to Hebrew',
+  'מקלדת ערבית — עבור לעברית': 'Arabic keyboard detected — switch to Hebrew',
   'שיעור הבא': 'Next lesson',
   'שלב הבא': 'Next stage',
   'סיום': 'Finish',

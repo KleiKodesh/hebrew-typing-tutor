@@ -1,7 +1,10 @@
 import { ref, onUnmounted } from 'vue'
 import type { Ref } from 'vue'
 import type { Lesson, ExerciseMode } from './TypingTypes'
-import { AYIN } from '../KeyboardDisplay/HebrewKeyboard'
+import { AYIN, HEBREW_KEY_BY_CODE } from '../KeyboardDisplay/HebrewKeyboard'
+
+const ARABIC_CHARACTERS = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/
+const ARABIC_CHARACTERS_GLOBAL = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/g
 
 export function useTypingInput(
   typed: Ref<string>,
@@ -21,15 +24,15 @@ export function useTypingInput(
   sessionExpired: Ref<boolean>,
   startSessionTimer: () => void,
 ) {
-  const englishWarning = ref(false)
+  const inputWarning = ref('')
 
-  let englishWarningTimer: ReturnType<typeof setTimeout> | null = null
-  function triggerEnglishWarning() {
-    englishWarning.value = true
-    if (englishWarningTimer) clearTimeout(englishWarningTimer)
-    englishWarningTimer = setTimeout(() => {
-      englishWarning.value = false
-      englishWarningTimer = null
+  let inputWarningTimer: ReturnType<typeof setTimeout> | null = null
+  function triggerInputWarning(message: string) {
+    inputWarning.value = message
+    if (inputWarningTimer) clearTimeout(inputWarningTimer)
+    inputWarningTimer = setTimeout(() => {
+      inputWarning.value = ''
+      inputWarningTimer = null
     }, 1400)
   }
 
@@ -43,21 +46,59 @@ export function useTypingInput(
     }, 360)
   }
 
-  function onKeyDown(event: KeyboardEvent) { heldKey.value = event.key }
+  function onKeyDown(event: KeyboardEvent) {
+    const target = event.target
+    const keyByCode = HEBREW_KEY_BY_CODE[event.code]
+    if (
+      !keyByCode ||
+      !(target instanceof HTMLTextAreaElement) ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      event.isComposing
+    ) {
+      heldKey.value = event.key
+      return
+    }
+
+    event.preventDefault()
+    const character = keyByCode[event.shiftKey ? 1 : 0]
+    heldKey.value = character
+    const selectionStart = target.selectionStart
+    const selectionEnd = target.selectionEnd
+    target.setRangeText(character, selectionStart, selectionEnd, 'end')
+    target.dispatchEvent(new InputEvent('input', {
+      bubbles: true,
+      inputType: 'insertText',
+      data: character,
+    }))
+  }
   function onKeyUp() { heldKey.value = '' }
   function clearHeldKey() { heldKey.value = '' }
 
   function onInput(e?: Event) {
     if (sessionExpired.value) return
 
-    if (e && exerciseMode.value !== 'free') {
+    if (e) {
       const textarea = e.target as HTMLTextAreaElement
-      const lastChar = textarea.value.slice(-1)
-      if (lastChar && /[a-zA-Z]/.test(lastChar)) {
-        triggerEnglishWarning()
-        typed.value = textarea.value.slice(0, -1)
+      if (ARABIC_CHARACTERS.test(textarea.value)) {
+        const selectionStart = textarea.selectionStart
+        const selectionEnd = textarea.selectionEnd
+        const prefixLength = textarea.value.slice(0, selectionStart).replace(ARABIC_CHARACTERS_GLOBAL, '').length
+        typed.value = textarea.value.replace(ARABIC_CHARACTERS_GLOBAL, '')
         textarea.value = typed.value
-        return
+        textarea.setSelectionRange(prefixLength, prefixLength + (selectionEnd - selectionStart))
+        triggerInputWarning('מקלדת ערבית — עבור לעברית')
+      }
+
+      if (exerciseMode.value !== 'free') {
+        const lastChar = textarea.value.slice(-1)
+        if (lastChar && /[a-zA-Z]/.test(lastChar)) {
+          typed.value = textarea.value.slice(0, -1)
+          textarea.value = typed.value
+          triggerInputWarning('הקלדה באנגלית — עבור לעברית')
+          return
+        }
       }
     }
 
@@ -96,13 +137,12 @@ export function useTypingInput(
   }
 
   onUnmounted(() => {
-    if (englishWarningTimer) clearTimeout(englishWarningTimer)
+    if (inputWarningTimer) clearTimeout(inputWarningTimer)
     if (mistakeTimerId) clearTimeout(mistakeTimerId)
   })
 
   return {
-    englishWarning,
-    triggerEnglishWarning,
+    inputWarning,
     triggerMistake,
     onKeyDown,
     onKeyUp,

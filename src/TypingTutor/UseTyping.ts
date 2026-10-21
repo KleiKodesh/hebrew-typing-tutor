@@ -508,7 +508,7 @@ export function useTyping(initialLesson: Lesson, userName?: Ref<string>) {
 
   return {
     typed, accuracy, wpm, progress, lastKey, heldKey, nextKey, mistakeKey,
-    englishWarning: input.englishWarning,
+    inputWarning: input.inputWarning,
     isComplete: zone.isComplete, isZoneDone: zone.isZoneDone,
     currentLesson, currentStage, allStages, displayText, exerciseMode,
     currentZone: zone.currentZone, currentZoneIndex: zone.currentZoneIndex,

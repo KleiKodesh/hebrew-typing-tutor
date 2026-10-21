@@ -13,6 +13,25 @@ export const KEYBOARD_HE: string[][] = [
   ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Fn', 'Ctrl'],
 ]
 
+export const HEBREW_KEY_BY_CODE: Record<string, readonly [string, string]> = {
+  Backquote: ['`', '~'],
+  Digit1: ['1', '!'], Digit2: ['2', '@'], Digit3: ['3', '#'], Digit4: ['4', '$'],
+  Digit5: ['5', '%'], Digit6: ['6', '^'], Digit7: ['7', '&'], Digit8: ['8', '*'],
+  Digit9: ['9', '('], Digit0: ['0', ')'],
+  Minus: ['-', '_'], Equal: ['=', '+'],
+  KeyQ: ['/', '/'], KeyW: ["'", "'"], KeyE: ['ק', 'ק'], KeyR: ['ר', 'ר'],
+  KeyT: ['א', 'א'], KeyY: ['ט', 'ט'], KeyU: ['ו', 'ו'], KeyI: ['ן', 'ן'],
+  KeyO: ['ם', 'ם'], KeyP: ['פ', 'פ'],
+  BracketLeft: ['[', '{'], BracketRight: [']', '}'], Backslash: ['\\', '|'],
+  KeyA: ['ש', 'ש'], KeyS: ['ד', 'ד'], KeyD: ['ג', 'ג'], KeyF: ['כ', 'כ'],
+  KeyG: ['ע', 'ע'], KeyH: ['י', 'י'], KeyJ: ['ח', 'ח'], KeyK: ['ל', 'ל'],
+  KeyL: ['ך', 'ך'], Semicolon: ['ף', ':'], Quote: ["'", '״'],
+  KeyZ: ['ז', 'ז'], KeyX: ['ס', 'ס'], KeyC: ['ב', 'ב'], KeyV: ['ה', 'ה'],
+  KeyB: ['נ', 'נ'], KeyN: ['מ', 'מ'], KeyM: ['צ', 'צ'],
+  Comma: ['ת', '<'], Period: ['ץ', '>'], Slash: ['/', '?'],
+  Space: [' ', ' '],
+}
+
 export const HOME_ROW_HE = KEYBOARD_HE[2]
 export const SPACE_ROW    = KEYBOARD_HE[4]
 

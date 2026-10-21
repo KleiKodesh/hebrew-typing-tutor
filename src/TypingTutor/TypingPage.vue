@@ -1,9 +1,9 @@
 <template>
   <div class="typing-card">
 
-    <!-- ── English keyboard warning ── -->
-    <div v-if="englishWarning" class="warning-popup">
-      ⚠️ {{ t('הקלדה באנגלית — עבור לעברית') }}
+    <!-- ── Unsupported keyboard layout warning ── -->
+    <div v-if="inputWarning" class="warning-popup">
+      ⚠️ {{ t(inputWarning) }}
     </div>
 
     <!-- ── Stage intro overlay ── -->
@@ -154,6 +154,7 @@
       :next-key="nextKey"
       :prev-key="lastKey"
       :mistake-key="mistakeKey"
+      force-hebrew-layout
     />
 
     <!-- ── Reset confirmation dialog ── -->
@@ -214,7 +215,7 @@ const stageIntroData = ref<{ stageId: string; title: string; subtitle?: string; 
 
 const {
   typed, accuracy, wpm, progress, lastKey, heldKey, nextKey, mistakeKey,
-  englishWarning, currentLesson, currentStage, allStages, displayText, exerciseMode,
+  inputWarning, currentLesson, currentStage, allStages, displayText, exerciseMode,
   currentZone, currentZoneIndex, availableZones,
   recallReady, recallHidden, startRecall,
   sessionSecondsDisplay, sessionWarning, sessionExpired,
