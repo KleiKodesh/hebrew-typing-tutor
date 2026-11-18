@@ -17,12 +17,13 @@
       id="typing-input"
       ref="inputEl"
       class="fluent-input"
+      :class="{ 'placeholder-ltr': language === 'en' }"
       :value="modelValue"
       @input="onInput"
       @keydown="onKeyDown"
       @keyup="onKeyUp"
       @blur="onBlur"
-      :placeholder="t('הקלד כאן...')"
+      :placeholder="placeholderText('הקלד כאן...')"
       dir="rtl"
       spellcheck="false"
       autocomplete="off"
@@ -36,7 +37,13 @@
 import { ref, watch, nextTick } from 'vue'
 import { useUiLanguage } from '../composables/useUiLanguage'
 
-const { t } = useUiLanguage()
+// Typed text is always Hebrew (RTL), but the placeholder is in the UI language:
+// an English placeholder must read LTR, or its trailing dots land on the left.
+const { t, language } = useUiLanguage()
+// The box is dir=rtl for Hebrew typing. Chromium ignores 'direction' on ::placeholder,
+// so an English placeholder ends with a left-to-right mark (U+200E): the trailing
+// dots then stay after the words ("Type here...", not "...Type here").
+const placeholderText = (he: string) => language.value === 'en' ? t(he) + '\u200E' : t(he)
 
 const props = defineProps<{
   modelValue?: string
@@ -174,6 +181,7 @@ watch(
 }
 
 .fluent-input::placeholder { color: var(--text-tertiary); }
+.fluent-input.placeholder-ltr::placeholder { text-align: left; }
 
 .hidden-msg { display: inline-flex; align-items: center; height: 56px; }
 .show-text-link {

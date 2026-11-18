@@ -3,11 +3,12 @@
     <textarea
       ref="inputEl"
       class="free-input"
+      :class="{ 'placeholder-ltr': language === 'en' }"
       :value="modelValue"
       @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value); $emit('input', $event)"
       @keydown="$emit('keydown', $event)"
       @keyup="$emit('keyup', $event)"
-      :placeholder="t('הקלד חופשי...')"
+      :placeholder="placeholderText('הקלד חופשי...')"
       dir="rtl"
     ></textarea>
   </div>
@@ -17,7 +18,12 @@
 import { ref } from 'vue'
 import { useUiLanguage } from '../composables/useUiLanguage'
 
-const { t } = useUiLanguage()
+// Typed text stays RTL Hebrew; an English placeholder reads LTR.
+const { t, language } = useUiLanguage()
+// The box is dir=rtl for Hebrew typing. Chromium ignores 'direction' on ::placeholder,
+// so an English placeholder ends with a left-to-right mark (U+200E): the trailing
+// dots then stay after the words ("Type here...", not "...Type here").
+const placeholderText = (he: string) => language.value === 'en' ? t(he) + '\u200E' : t(he)
 
 defineProps<{ modelValue: string }>()
 defineEmits<{
@@ -63,4 +69,5 @@ defineExpose({ focus: () => inputEl.value?.focus() })
 }
 
 .free-input::placeholder { color: var(--text-tertiary); }
+.free-input.placeholder-ltr::placeholder { text-align: left; }
 </style>
