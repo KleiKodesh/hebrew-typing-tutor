@@ -57,6 +57,8 @@ const englishByHebrew: Record<string, string> = {
   'אפס הכל': 'Reset all',
   'מצב בהיר': 'Light mode',
   'מצב אפל': 'Dark mode',
+  'הצג מקלדת': 'Show keyboard',
+  'הסתר מקלדת': 'Hide keyboard',
   'דיוק': 'Accuracy',
   'ת/ד': 'Chars/min',
   'תווים/דקה': 'Characters/min',

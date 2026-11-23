@@ -112,10 +112,7 @@ function confirmDelete() {
   border-radius: 8px;
   max-width: 340px;
   width: 100%;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.06),
-    0 4px 12px rgba(0,0,0,0.08),
-    0 16px 40px rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   text-align: center;
@@ -201,7 +198,7 @@ function confirmDelete() {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(0, 120, 212, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
   color: var(--accent-primary);
   font-size: 12px;
   font-weight: 700;

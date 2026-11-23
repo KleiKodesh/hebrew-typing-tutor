@@ -71,15 +71,12 @@ defineEmits<{ stay: []; advance: [] }>()
 .summary-box {
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: clamp(20px, 3vw, 28px) clamp(18px, 2.5vw, 24px);
   max-width: 360px;
   width: 100%;
   text-align: center;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.06),
-    0 4px 12px rgba(0,0,0,0.08),
-    0 16px 40px rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   gap: clamp(12px, 2vw, 16px);
@@ -163,7 +160,7 @@ defineEmits<{ stay: []; advance: [] }>()
 
 .summary-btn.primary {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .summary-btn.secondary {

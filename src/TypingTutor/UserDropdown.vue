@@ -232,8 +232,8 @@ onUnmounted(() => {
 .user-trigger.open {
   color: var(--accent-primary);
   background: var(--bg-tertiary);
-  box-shadow: 0 18px 36px rgba(16, 20, 40, 0.08);
-  border-color: rgba(0, 120, 212, 0.18);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--accent-primary) 18%, transparent);
   transform: translateY(-1px);
 }
 
@@ -256,7 +256,7 @@ onUnmounted(() => {
   position: fixed;
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: var(--shadow-lg);
   z-index: 400;
   overflow: hidden;
@@ -317,7 +317,7 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(0, 120, 212, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
   color: var(--accent-primary);
   font-size: 12px;
   font-weight: 700;

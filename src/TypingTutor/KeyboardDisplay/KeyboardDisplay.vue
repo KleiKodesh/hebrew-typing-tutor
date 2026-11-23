@@ -147,8 +147,6 @@ const handOverlays = useHandOverlays(nextKeyRef, prevKeyRef, lang, kbWidth, kbHe
 
 .keyboard {
   background: var(--bg-secondary);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   padding: 4px;
   border-radius: 1px;
   border: 1px solid var(--border-subtle);
@@ -156,7 +154,7 @@ const handOverlays = useHandOverlays(nextKeyRef, prevKeyRef, lang, kbWidth, kbHe
   width: 100%;
   aspect-ratio: 3.2 / 1;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-family: inherit;
   display: flex;
   flex-direction: column;
   gap: 2px;

@@ -149,19 +149,17 @@ const handOverlays = useHandOverlays(nextKeyRef, prevKeyRef, lang, kbWidth, kbHe
 
 .keyboard {
   background: var(--bg-secondary);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding: 4px;
-  border-radius: 1px;
+  padding: 8px;
+  border-radius: 8px;
   border: 1px solid var(--border-subtle);
   direction: ltr;
   width: 100%;
   aspect-ratio: 3.2 / 1;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-family: inherit;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   position: relative;
 }
 
@@ -179,13 +177,13 @@ const handOverlays = useHandOverlays(nextKeyRef, prevKeyRef, lang, kbWidth, kbHe
   min-width: 0;
   width: 0;
   height: 100%;
-  margin-right: 2px;
+  margin-right: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 1px;
-  background: rgba(236, 237, 244, 0.85);
-  border: 0.5px solid rgba(192, 194, 204, 0.7);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   font-size: clamp(9px, 2vw, 12px);
   font-weight: 500;
   color: var(--text-primary);
@@ -197,11 +195,6 @@ const handOverlays = useHandOverlays(nextKeyRef, prevKeyRef, lang, kbWidth, kbHe
   cursor: default;
   user-select: none;
   letter-spacing: 0.01em;
-}
-
-[data-theme='dark'] .key {
-  background: rgba(236, 237, 244, 0.12);
-  border-color: rgba(192, 194, 204, 0.18);
 }
 
 .single-key-content {
@@ -227,50 +220,28 @@ const handOverlays = useHandOverlays(nextKeyRef, prevKeyRef, lang, kbWidth, kbHe
 .dual-key-content .unshifted { font-size: clamp(10px, 2.3vw, 13px); }
 
 .key.special {
-  background: rgba(236, 237, 244, 0.95);
-  border-color: rgba(192, 194, 204, 0.85);
-  color: #4a4c5a;
-  font-weight: 500;
-}
-
-[data-theme='dark'] .key.special {
-  background: rgba(236, 237, 244, 0.18);
-  border-color: rgba(192, 194, 204, 0.28);
-  color: #b0b0d0;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-weight: 400;
 }
 
 .key.held {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1e3a8a;
+  background: var(--bg-tertiary);
+  border-color: var(--text-tertiary);
 }
 
-.key.next {
-  background: #d4e8d0;
-  border-color: #8ab88a;
-  color: #1e3a1e;
-  box-shadow: inset 0 0 0 1px #8ab88a;
-}
-
+.key.next,
 .key.special.next {
-  background: #d4e8d0;
-  border-color: #8ab88a;
-  color: #1e3a1e;
-  box-shadow: inset 0 0 0 2px #8ab88a;
-}
-
-[data-theme='dark'] .key.next,
-[data-theme='dark'] .key.special.next {
-  background: rgba(100, 160, 90, 0.28);
-  border-color: #6aaa60;
-  color: #c8ecc4;
-  box-shadow: inset 0 0 0 1px #6aaa60;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--on-accent);
+  font-weight: 600;
 }
 
 .key.mistake {
-  background: #fdf2f2;
-  border-color: #fecaca;
-  color: #991b1b;
+  background: color-mix(in srgb, var(--error-color) 12%, transparent);
+  border-color: var(--error-color);
+  color: var(--error-color);
 }
 
 .win-icon {

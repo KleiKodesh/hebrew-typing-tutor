@@ -178,10 +178,7 @@ function handleKeydown(e: KeyboardEvent) {
   border-radius: 8px;
   max-width: 380px;
   width: 100%;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.06),
-    0 4px 12px rgba(0,0,0,0.08),
-    0 16px 40px rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -284,7 +281,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 .intro-btn.primary {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .intro-btn.secondary {

@@ -62,8 +62,8 @@ const accuracyClass = computed(() => {
 
 .stat-value {
   font-size: clamp(11px, 1.8vw, 14px);
-  font-weight: 700;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: var(--accent-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -85,16 +85,16 @@ const accuracyClass = computed(() => {
 
 .progress-track {
   flex: 1 1 auto;
-  height: clamp(3px, 0.5vw, 5px);
+  height: clamp(5px, 0.7vw, 7px);
   background: var(--bg-tertiary);
-  border-radius: 2px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   background: var(--accent-primary);
-  border-radius: 2px;
+  border-radius: 4px;
   transition: width 200ms ease;
 }
 </style>

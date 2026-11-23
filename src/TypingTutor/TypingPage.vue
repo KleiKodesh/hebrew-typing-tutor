@@ -149,6 +149,7 @@
 
     <!-- ── Keyboard display ── -->
     <KeyboardDisplay
+      v-if="isKeyboardVisible"
       :last-key="lastKey"
       :held-key="heldKey"
       :next-key="nextKey"
@@ -177,6 +178,7 @@ import { ref, watch, nextTick, computed } from 'vue'
 import NavigationButtons from './NavigationButtons.vue'
 import InputArea from './InputArea.vue'
 import KeyboardDisplay from '../KeyboardDisplay/KeyboardDisplay.vue'
+import { useKeyboardVisible } from '../composables/useKeyboardVisible'
 import StatsBar from './StatsBar.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import SessionExpiredOverlay from './SessionExpiredOverlay.vue'
@@ -188,6 +190,8 @@ import StageIntroOverlay from './StageIntroOverlay.vue'
 import { useTyping, getZoneName } from './UseTyping'
 import { useUserProfile } from '../composables/useUserProfile'
 import { useUiLanguage } from '../composables/useUiLanguage'
+
+const { isKeyboardVisible } = useKeyboardVisible()
 
 const emit = defineEmits<{ 'show-intro': []; 'new-user': []; 'reset-to-intro': [] }>()
 
@@ -363,7 +367,7 @@ watch(showSummary, (visible) => {
 }
 
 .zone-pip:hover { background: var(--bg-tertiary); border-color: var(--border-color); }
-.zone-pip--active { background: rgba(0,120,212,0.12); border-color: rgba(0,120,212,0.3); color: var(--accent-primary); font-weight: 700; }
+.zone-pip--active { background: color-mix(in srgb, var(--accent-primary) 12%, transparent); border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent); color: var(--accent-primary); font-weight: 700; }
 .zone-pip--done { background: rgba(16,124,16,0.1); border-color: rgba(16,124,16,0.25); color: var(--success-color); }
 .zone-pip-label { pointer-events: none; }
 
@@ -396,15 +400,12 @@ watch(showSummary, (visible) => {
   background: rgba(255,242,241,0.97);
   color: #991b1b;
   border: 1px solid rgba(252,165,165,0.75);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: clamp(14px, 2vw, 20px) clamp(18px, 3vw, 26px);
   font-size: clamp(13px, 2vw, 16px);
   font-weight: 700;
   text-align: center;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.06),
-    0 4px 12px rgba(0,0,0,0.08),
-    0 16px 40px rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-lg);
   z-index: 300;
   animation: popIn 280ms cubic-bezier(0.34,1.56,0.64,1);
   max-width: 88%;

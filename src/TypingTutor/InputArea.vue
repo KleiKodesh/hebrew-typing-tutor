@@ -175,8 +175,8 @@ watch(
 }
 
 .fluent-input:focus {
-  box-shadow: inset 0 0 0 1px rgba(0, 120, 212, 0.16);
-  border-color: rgba(0, 120, 212, 0.28);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-primary) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 28%, transparent);
   background: var(--bg-primary);
 }
 
@@ -200,8 +200,8 @@ watch(
 .show-text-link:focus, .show-text-link:hover { outline: none; text-decoration: none; }
 
 :deep(span.current) {
-  background: rgba(0, 120, 212, 0.55);
-  color: #fff;
+  background: var(--accent-primary);
+  color: var(--on-accent);
   white-space: nowrap;
 }
 

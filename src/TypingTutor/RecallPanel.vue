@@ -45,7 +45,7 @@ defineEmits<{ start: [] }>()
 .recall-btn {
   align-self: flex-start;
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
   border-radius: 6px;
   padding: clamp(7px, 1.2vw, 10px) clamp(12px, 2vw, 18px);
@@ -58,7 +58,7 @@ defineEmits<{ start: [] }>()
 .recall-btn:hover {
   opacity: 0.88;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,120,212,0.2);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 .recall-btn:active { transform: translateY(0); }

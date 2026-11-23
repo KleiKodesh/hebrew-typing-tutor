@@ -140,11 +140,11 @@ function handleBackdropClick() {
   width: auto;
   min-width: 120px;
   padding: clamp(10px, 1.5vw, 12px) clamp(24px, 3vw, 32px);
-  border-radius: 12px;
+  border-radius: 8px;
   border: none;
   font-size: clamp(14px, 1.6vw, 16px);
   font-weight: 700;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent-primary);
   cursor: pointer;
   transition: opacity 150ms ease, transform 150ms ease;

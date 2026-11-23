@@ -56,7 +56,7 @@ function cancel() {
 .confirm-dialog {
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 20px 24px;
   max-width: 300px;
   width: 90%;

@@ -64,8 +64,8 @@ defineExpose({ focus: () => inputEl.value?.focus() })
 }
 
 .free-input:focus {
-  border-color: rgba(0,120,212,0.35);
-  box-shadow: inset 0 0 0 1px rgba(0,120,212,0.16), 0 2px 8px rgba(0,120,212,0.08);
+  border-color: color-mix(in srgb, var(--accent-primary) 35%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-primary) 16%, transparent), 0 2px 8px color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
 .free-input::placeholder { color: var(--text-tertiary); }

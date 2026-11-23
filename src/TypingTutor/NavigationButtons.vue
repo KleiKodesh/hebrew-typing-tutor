@@ -10,6 +10,8 @@
     </div>
     <div class="button-group">
       <span class="progression-label" v-if="lessonStageLabel">{{ lessonStageLabel }}</span>
+      <!-- Lesson arrows follow the reading direction: "previous" sits on the side the text starts. -->
+      <span class="lesson-arrows" :dir="language === 'he' ? 'rtl' : 'ltr'">
       <button
         class="nav-button stage-button"
         :disabled="!canGoPrevStage"
@@ -62,6 +64,21 @@
           <path d="M20 6L13 12L20 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+      </span>
+      <button
+        class="nav-button keyboard-toggle"
+        type="button"
+        @click="toggleKeyboard()"
+        :title="isKeyboardVisible ? t('הסתר מקלדת') : t('הצג מקלדת')"
+        :aria-label="isKeyboardVisible ? t('הסתר מקלדת') : t('הצג מקלדת')"
+        :aria-pressed="isKeyboardVisible"
+      >
+        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <rect x="2.5" y="6" width="19" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M6 10H6.01M10 10H10.01M14 10H14.01M18 10H18.01M8 14H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path v-if="!isKeyboardVisible" d="M3 3L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
       <button
         class="nav-button dark-toggle"
         @click="toggleDarkMode()"
@@ -91,10 +108,12 @@
 <script setup lang="ts">
 import { useDarkMode } from '../composables/useDarkMode'
 import { useUiLanguage } from '../composables/useUiLanguage'
+import { useKeyboardVisible } from '../composables/useKeyboardVisible'
 import UserDropdown from './UserDropdown.vue'
 
 const { isDarkMode, toggleDarkMode } = useDarkMode()
 const { language, setLanguage, t } = useUiLanguage()
+const { isKeyboardVisible, toggleKeyboard } = useKeyboardVisible()
 
 defineProps<{
   canGoPrev?: boolean
@@ -118,6 +137,10 @@ function handleReset() {
 </script>
 
 <style scoped>
+.lesson-arrows { display: flex; align-items: center; gap: inherit; }
+/* The arrow icons are drawn for Hebrew; English mirrors them. */
+.lesson-arrows[dir='ltr'] .nav-button .icon { transform: scaleX(-1); }
+
 .button-row { 
   display: flex;
   gap: 6px;
@@ -126,9 +149,7 @@ function handleReset() {
   flex-shrink: 0;
   padding: 6px 6px;
   background: var(--bg-secondary);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--border-subtle);
   transition: box-shadow 240ms ease, transform 180ms ease;
 }
@@ -137,7 +158,7 @@ function handleReset() {
   .button-row { 
     gap: 4px;
     padding: 5px 4px;
-    border-radius: 10px;
+    border-radius: 8px;
   }
 }
 
@@ -160,7 +181,7 @@ function handleReset() {
   font-size: clamp(10px, 1.6vw, 13px);
   font-weight: 600;
   color: var(--accent-primary);
-  background: rgba(0, 120, 212, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
   padding: clamp(3px, 0.6vw, 5px) clamp(6px, 1vw, 10px);
   border-radius: 6px;
   flex-shrink: 0;
@@ -282,16 +303,16 @@ function handleReset() {
 .nav-button:hover:not(:disabled), .reset-button:hover {
   background: var(--bg-tertiary);
   color: var(--accent-primary);
-  box-shadow: 0 18px 36px rgba(16, 20, 40, 0.08);
-  border-color: rgba(0, 120, 212, 0.18);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--accent-primary) 18%, transparent);
   transform: translateY(-1px);
 }
 
 .nav-button:active:not(:disabled), .reset-button:active { 
   background: var(--accent-primary);
-  color: white;
+  color: var(--on-accent);
   transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(16, 20, 40, 0.12);
+  box-shadow: none;
 }
 
 .nav-button:disabled { 
